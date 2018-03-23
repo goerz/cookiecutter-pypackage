@@ -1,0 +1,14 @@
+formats:
+    - none
+{% if cookiecutter.environment_manager == 'conda' %}
+conda:
+    file: docs/rtd_environment.yml
+{%endif %}
+build:
+    image: latest
+python:
+   version: {%if cookiecutter.support_py36 == 'y' %}3.6{% elif cookiecutter.support_py35 == 'y' %}3.5{% elif cookiecutter.support_py34 == 'y' %}3.4{% else %}3{% endif %}
+   setup_py_install: false
+   pip_install: true
+   extra_requirements:
+        - dev
