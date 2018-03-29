@@ -8,7 +8,16 @@ TESTENV =
 #TESTENV = MATPLOTLIBRC=tests
 TESTOPTIONS = --doctest-modules --cov={{ cookiecutter.project_slug }}
 TESTS = src tests
-PYVERSION = {%if cookiecutter.support_py36 == 'y' %}3.6{% elif cookiecutter.support_py35 == 'y' %}3.5{% elif cookiecutter.support_py34 == 'y' %}3.4{% else %}3{% endif %}
+{%if cookiecutter.support_py36 == 'y' %}
+  {%- set latest_venv = '.venv/py36' -%}
+  {%- set latest_test_target = 'test36' -%}
+{% elif cookiecutter.support_py35 == 'y' %}
+  {%- set latest_venv = '.venv/py35' -%}
+  {%- set latest_test_target = 'test35' -%}
+{% else %}
+  {%- set latest_venv = '.venv/py34' -%}
+  {%- set latest_test_target = 'test34' -%}
+{% endif %}
 
 define PRINT_HELP_PYSCRIPT
 import re, sys
@@ -84,17 +93,15 @@ test36: .venv/py36/bin/py.test ## run tests for Python 3.6
 {%endif %}
 
 {%- if cookiecutter.sphinx_docs == 'y' %}
-.venv/docs/bin/sphinx-build:
-	@conda create -y -m -p .venv/docs python=$(PYVERSION) $(CONDA_PACKAGES)
-	@.venv/docs/bin/pip install -e .[dev]
+{{ latest_venv }}/bin/sphinx-build: {{latest_venv }}/bin/py.test
 
-docs: .venv/docs/bin/sphinx-build ## generate Sphinx HTML documentation, including API docs
-	$(MAKE) -C docs SPHINXBUILD=../.venv/docs/bin/sphinx-build clean
+docs: {{ latest_venv }}/bin/sphinx-build ## generate Sphinx HTML documentation, including API docs
+	$(MAKE) -C docs SPHINXBUILD=../{{ latest_venv }}/bin/sphinx-build clean
 {%- if cookiecutter.better_apidoc == 'n' %}
-	@./.venv/docs/bin/sphinx-apidoc --separate -o docs/API/ src/{{ cookiecutter.project_slug }}
+	@./{{ latest_venv }}/sphinx-apidoc --separate -o docs/API/ src/{{ cookiecutter.project_slug }}
 	@rm -f docs/API/modules.rst
 {%-endif %}
-	$(MAKE) -C docs SPHINXBUILD=../.venv/docs/bin/sphinx-build html
+	$(MAKE) -C docs SPHINXBUILD=../{{ latest_venv }}/bin/sphinx-build html
 	@echo "open docs/_build/html/index.html"
 {%endif %}
 {%endif %}
