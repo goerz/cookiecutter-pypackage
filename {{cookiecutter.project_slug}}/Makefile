@@ -103,12 +103,12 @@ docs: {{ latest_venv }}/bin/sphinx-build ## generate Sphinx HTML documentation, 
 {%-endif %}
 	$(MAKE) -C docs SPHINXBUILD=../{{ latest_venv }}/bin/sphinx-build html
 	@echo "open docs/_build/html/index.html"
+{%-endif -%}
 {%endif %}
-{%endif %}
-
 
 coverage: {{ latest_test_target }}  ## generate coverage report in ./htmlcov
 	{{ latest_venv }}/bin/coverage html
+	@echo "open htmlcov/index.html"
 
 test-release: clean-build clean-pyc dist ## package and upload a release to test.pypi.org
 	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
