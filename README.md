@@ -41,7 +41,7 @@ Variables
 * `create_author_file`: Whether to create AUTHORS.rst
 * `open_source_license`: The license under which the code will be available (choice of MIT, GPL, or Public Domain)
 * `environment_manager`: The system for managing virtual environments. Currently, only `conda` is supported.
-* `conda_packages`: If using `conda` as an environment manager, which packages to install from the conda repository (i.e., not through pip)
+* `conda_packages`: If using `conda` as an environment manager, which packages to install from the conda repository (i.e., not through pip). If you package extensively uses the Python scientific stack, and virtual environments are managed through conda, you might consider using the anaconda meta package, and set `anaconda pytest-cov pytest-xdist coverage sphinx_rtd_theme flake8`.
 * `on_pypi`: Whether the package will be uploaded to the Python Package Index
 * `travisci`: Whether Travis will be used as a Continuous Integration testing service
 * `coveralls`: Whether to upload coverage data to <http://coveralls.io>. This only work if `travisci` is used.
