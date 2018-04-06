@@ -47,7 +47,7 @@ you through the process.
 .. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
 {%endif %}
 
-To install the latest development version of {{ cookiecutter.project_name }} from the from the `Github`_.
+To install the latest development version of {{ cookiecutter.project_name }} from `Github`_.
 
 .. code-block:: console
 
