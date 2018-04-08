@@ -3,7 +3,7 @@ cookiecutter-pypackage3
 
 A [cookiecutter][] template for a Python 3 package.
 
-[cookiecutter]: (https://github.com/audreyr/cookiecutter)
+[cookiecutter]: https://github.com/audreyr/cookiecutter
 
 
 Features
