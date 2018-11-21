@@ -2,6 +2,9 @@
 {{ cookiecutter.project_name }}
 {% for _ in cookiecutter.project_name %}={% endfor %}
 
+.. image:: https://img.shields.io/badge/github-{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}-blue.svg
+   :alt: Source code on Github
+   :target: https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}
 {%- if cookiecutter.on_pypi == 'y' %}
 .. image:: https://img.shields.io/pypi/v/{{ cookiecutter.project_slug }}.svg
    :alt: {{ cookiecutter.project_name }} on the Python Package Index
@@ -15,7 +18,7 @@
 {%- endif %}
 
 {%- if cookiecutter.coveralls == 'y' %}
-.. image:: https://coveralls.io/repos/github/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/badge.svg?branch={%- if cookiecutter.use_git_flow == 'y' -%}develop{%- else -%}master{%- endif -%}
+.. image:: https://img.shields.io/coveralls/github/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/badge.svg?branch={%- if cookiecutter.use_git_flow == 'y' -%}develop{%- else -%}master{%- endif -%}
    :alt: Coveralls
    :target: https://coveralls.io/github/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}?branch={%- if cookiecutter.use_git_flow == 'y' -%}develop{%- else -%}master{%- endif -%}
 {%- endif %}
@@ -50,7 +53,13 @@
 
 {{ cookiecutter.project_short_description }}
 
-Development of {{ cookiecutter.project_name }} happens on `Github`_.
+Development of {{ cookiecutter.project_name }} happens on `Github`_. {%- if cookiecutter.readthedocs == 'y' %}
+You can read the full documentation at `ReadTheDocs`_.
+{%- endif %}
+
+{% if cookiecutter.readthedocs == 'y' %}
+.. _ReadTheDocs: https://{{ cookiecutter.project_slug | replace("_", "-") }}.readthedocs.io/en/latest/
+{%- endif %}
 
 
 Installation
