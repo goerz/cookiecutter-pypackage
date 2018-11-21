@@ -12,7 +12,7 @@ Features
 
 * Python 3 only. Although it would be straightforward to also add Python 2 support to your package by hand.
 * The actual package code is in a `src` directory. See <https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure> for the reasoning behind this.
-* [Travis CI](https://travis-ci.org) support.
+* [Travis CI](https://travis-ci.org) and [AppVeyor](http://appveyor.com) support.
 * Sphinx/Read-the-docs support. This includes optional use of the [better_apidoc](https://github.com/goerz/better-apidoc) tool for generating API documentation with templates.
 * Mandatory testing with [pytest](https://docs.pytest.org)
 * Environment management through [`conda`](https://conda.io/docs/)
@@ -53,6 +53,7 @@ Variables
 * `conda_packages`: If using `conda` as an environment manager, which packages to install from the conda repository (i.e., not through pip). If you package extensively uses the Python scientific stack, and virtual environments are managed through conda, you might consider using the anaconda meta package, and set `anaconda pytest-cov pytest-xdist coverage sphinx_rtd_theme flake8`.
 * `on_pypi`: Whether the package will be uploaded to the Python Package Index
 * `travisci`: Whether Travis will be used as a Continuous Integration testing service
+* `appveyor`: Whether AppVeyor will be used as a Continuous Integration testing service for Windows
 * `coveralls`: Whether to upload coverage data to <http://coveralls.io>. This only work if `travisci` is used.
 * `sphinx_docs`: Whether the package will use Sphinx to generate its documentation
 * `better_apidoc`: Whether to use <https://github.com/goerz/better-apidoc> for generating the package API for Sphinx.
@@ -94,6 +95,8 @@ After you generate a new project from the cookiecutter template, you should do t
 *   If you are using the git-flow branching model, you *must* configure this on Github. Go to the "Settings" for the project, then "Branches", and switch the "Default branch" from "master", to "develop". You may consider protecting the master branch.
 
 *   Activate Travis CI. The easiest way to do this is to click on the `build|unknown` badge in the README on Github
+
+*   Activate AppVeyor. The easiest way to do this is to click on the `appveyor|no id` badge in the README on Github. You must update the badge svg in `README.rst` and `docs/index.rst`.
 
 *   Activate ReadTheDocs. Log in to <https://readthedocs.org/dashboard/>, and click the "Import a Project" button. You shouldn't have to do any configuration, as everything is set up through the `readthedocs.yml` and `docs/rtd_environment.yml` files.
 

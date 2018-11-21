@@ -16,6 +16,11 @@
    :alt: Travis Continuous Integration
    :target: https://travis-ci.org/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}
 {%- endif %}
+{%- if cookiecutter.appveyor == 'y' %}
+.. image:: https://img.shields.io/badge/appveyor-no%20id-red.svg
+   :alt: AppVeyor Continuous Integration
+   :target: https://ci.appveyor.com/project/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}
+{%- endif %}
 
 {%- if cookiecutter.coveralls == 'y' %}
 .. image:: https://img.shields.io/coveralls/github/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/badge.svg?branch={%- if cookiecutter.use_git_flow == 'y' -%}develop{%- else -%}master{%- endif -%}

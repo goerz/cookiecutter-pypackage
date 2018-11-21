@@ -12,6 +12,7 @@
   "conda_packages": "",
   "on_pypi": "y",
   "travisci": "y",
+  "appveyor": "y",
   "coveralls": "y",
   "sphinx_docs": "y",
   "better_apidoc": "y",

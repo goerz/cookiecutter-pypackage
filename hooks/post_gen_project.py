@@ -30,6 +30,8 @@ if __name__ == '__main__':
             remove_file(os.path.join('docs', 'rtd_environment.yml'))
     if '{{ cookiecutter.travisci }}' != 'y':
         remove_file('.travis.yml')
+    if '{{ cookiecutter.appveyor }}' != 'y':
+        remove_file('.appveyor.yml')
 
     if '{{ cookiecutter.interactive_postsetup }}' == 'y':
         try:
