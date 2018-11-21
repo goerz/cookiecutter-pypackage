@@ -9,7 +9,7 @@
   "create_author_file": "y",
   "open_source_license": ["MIT license", "BSD license", "ISC license", "Apache Software License 2.0", "GNU General Public License v3"],
   "environment_manager": ["conda"],
-  "conda_packages": "pytest pytest-cov pytest-xdist coverage sphinx sphinx_rtd_theme ipython pep8 flake8 wheel",
+  "conda_packages": "",
   "on_pypi": "y",
   "travisci": "y",
   "coveralls": "y",
