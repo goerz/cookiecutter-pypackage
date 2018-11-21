@@ -7,7 +7,7 @@ CONDA_PACKAGES =  {{ cookiecutter.conda_packages }}
 TESTENV =
 #TESTENV = MATPLOTLIBRC=tests
 TESTOPTIONS = --doctest-modules --cov={{ cookiecutter.project_slug }}
-TESTS = src tests
+TESTS = src tests docs/*.rst
 {%if cookiecutter.support_py36 == 'y' %}
   {%- set latest_venv = '.venv/py36' -%}
   {%- set latest_test_target = 'test36' -%}
@@ -34,11 +34,13 @@ help:
 	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
 clean: clean-build clean-pyc clean-test clean-venvs ## remove all build, test, coverage, and Python artifacts, as well as environments
+	$(MAKE) -C docs clean
 
 clean-build: ## remove build artifacts
 	rm -fr build/
 	rm -fr dist/
 	rm -fr .eggs/
+	rm -fr src/*.egg-info
 	find tests src -name '*.egg-info' -exec rm -fr {} +
 	find tests src -name '*.egg' -exec rm -f {} +
 
