@@ -25,9 +25,17 @@ sys.path.insert(0, os.path.abspath('_extensions'))
 def run_apidoc(_):
     """Generage API documentation"""
     import better_apidoc
-    better_apidoc.main(
-        ['better-apidoc', '-t', './_templates', '--force', '--no-toc',
-         '--separate', '-o', './API', '../src/{{ cookiecutter.project_slug }}'])
+    better_apidoc.main([
+        'better-apidoc',
+        '-t',
+        os.path.join('.', '_templates'),
+        '--force',
+        '--no-toc',
+        '--separate',
+        '-o',
+        os.path.join('.', 'API'),
+        os.path.join('..', 'src', '{{ cookiecutter.project_slug }}'),
+    ])
 {%- endif %}
 
 
