@@ -92,8 +92,11 @@ To install the latest development version of {{ cookiecutter.project_name }} fro
 
     $ pip install git+https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}.git@{%- if cookiecutter.use_git_flow == 'y' -%}develop{%- else -%}master{%- endif -%}#egg={{ cookiecutter.project_slug }}
 
-{%- if cookiecutter.on_pypi == 'n' %}
-Note that {{ cookiecutter.project_name }} is currently not released on the `Python Package Index`_, hence you will not be able to install it with ``pip install {{ cookiecutter.project_slug }}``.
+{% if cookiecutter.on_pypi == 'n' %}
+
+.. Note::
+
+    {{ cookiecutter.project_name }} is currently not released on the `Python Package Index`_, so you will not be able to install it with ``pip install <package name>``.
 
 .. _Python Package Index: https://pypi.org
 {%endif%}
