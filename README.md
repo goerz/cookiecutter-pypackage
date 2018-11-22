@@ -63,6 +63,7 @@ Variables
 * `support_py34`: Does the package support Python 3.4?
 * `support_py35`: Does the package support Python 3.5?
 * `support_py36`: Does the package support Python 3.6?
+* `support_py36`: Does the package support Python 3.7? Remember to check any conda-forge packages that you might depend on to support Python 3.7 before enabling this.
 * `use_git_flow`: Whether the project uses the [git-flow branching model](https://github.com/nvie/gitflow#git-flow)
 * `interactive_postsetup`: Whether to run the interactive post-setup script, which will e.g. set up git for the project
 

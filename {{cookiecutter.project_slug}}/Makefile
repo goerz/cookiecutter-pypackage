@@ -8,7 +8,10 @@ TESTENV =
 #TESTENV = MATPLOTLIBRC=tests
 TESTOPTIONS = --doctest-modules --cov={{ cookiecutter.project_slug }} {%- if cookiecutter.use_notebooks == 'y' %} --nbval --sanitize-with docs/nbval_sanitize.cfg{% endif %}
 TESTS = src tests docs/*.rst {%- if cookiecutter.use_notebooks == 'y' %} docs/*.ipynb{% endif %}
-{%if cookiecutter.support_py36 == 'y' %}
+{%if cookiecutter.support_py37 == 'y' %}
+  {%- set latest_venv = '.venv/py37' -%}
+  {%- set latest_test_target = 'test37' -%}
+{%elif cookiecutter.support_py36 == 'y' %}
   {%- set latest_venv = '.venv/py36' -%}
   {%- set latest_test_target = 'test36' -%}
 {% elif cookiecutter.support_py35 == 'y' %}
@@ -65,34 +68,35 @@ pep8: ## check style with pep8
 	pep8 src tests
 
 {% if cookiecutter.environment_manager == 'conda' %}
-test: {%if cookiecutter.support_py34 == 'y' %}test34{% endif %} {% if cookiecutter.support_py35 == 'y' %}test35{% endif %} {% if cookiecutter.support_py36 == 'y' %}test36{% endif %} ## run tests on every Python version
+test: {%if cookiecutter.support_py34 == 'y' %}test34{% endif %} {% if cookiecutter.support_py35 == 'y' %}test35{% endif %} {% if cookiecutter.support_py36 == 'y' %}test36{% endif %} {% if cookiecutter.support_py37 == 'y' %}test37{% endif %} ## run tests on every Python version
 
-{%- if cookiecutter.support_py34 == 'y' %}
 .venv/py34/bin/py.test:
 	@conda create -y -m -p .venv/py34 python=3.4 $(CONDA_PACKAGES)
 	@.venv/py34/bin/pip install -e .[dev]
 
 test34: .venv/py34/bin/py.test ## run tests for Python 3.4
 	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
-{%endif %}
 
-{% if cookiecutter.support_py35 == 'y' %}
 .venv/py35/bin/py.test:
 	@conda create -y -m -p .venv/py35 python=3.5 $(CONDA_PACKAGES)
 	@.venv/py35/bin/pip install -e .[dev]
 
 test35: .venv/py35/bin/py.test ## run tests for Python 3.5
 	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
-{%endif %}
 
-{% if cookiecutter.support_py36 == 'y' %}
 .venv/py36/bin/py.test:
 	@conda create -y -m -p .venv/py36 python=3.6 $(CONDA_PACKAGES)
 	@.venv/py36/bin/pip install -e .[dev]
 
 test36: .venv/py36/bin/py.test ## run tests for Python 3.6
 	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
-{%endif %}
+
+.venv/py37/bin/py.test:
+	@conda create -y -m -p .venv/py37 python=3.7 $(CONDA_PACKAGES)
+	@.venv/py37/bin/pip install -e .[dev]
+
+test37: .venv/py37/bin/py.test ## run tests for Python 3.6
+	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
 
 {%- if cookiecutter.sphinx_docs == 'y' %}
 {{ latest_venv }}/bin/sphinx-build: {{latest_venv }}/bin/py.test

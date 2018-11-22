@@ -68,6 +68,9 @@ setup(
 {%- if cookiecutter.support_py36 == 'y' %}
         'Programming Language :: Python :: 3.6',
 {%- endif %}
+{%- if cookiecutter.support_py37 == 'y' %}
+        'Programming Language :: Python :: 3.7',
+{%- endif %}
     ],
     description="{{ cookiecutter.project_short_description }}",
     install_requires=requirements,

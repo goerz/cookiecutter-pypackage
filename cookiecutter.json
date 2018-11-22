@@ -21,6 +21,7 @@
   "support_py34": "n",
   "support_py35": "y",
   "support_py36": "y",
+  "support_py37": "y",
   "use_git_flow": "n",
   "interactive_postsetup": "y"
 }

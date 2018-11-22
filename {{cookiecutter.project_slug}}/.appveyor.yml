@@ -9,6 +9,10 @@ environment:
     - PYTHON_VERSION: 3.6
       MINICONDA: C:\Miniconda3
 {%- endif %}
+{%- if cookiecutter.support_py37 == 'y' %}
+    - PYTHON_VERSION: 3.7
+      MINICONDA: C:\Miniconda3
+{%- endif %}
 
 install:
   - "%MINICONDA%\\Scripts\\activate"

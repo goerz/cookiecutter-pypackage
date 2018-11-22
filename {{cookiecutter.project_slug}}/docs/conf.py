@@ -74,7 +74,7 @@ if os.getenv('SPELLCHECK'):
     spelling_ignore_pypi_package_names = True
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3.7', None),
+    'python': ('https://docs.python.org/{% if cookiecutter.support_py37 == 'y' %}3.7{% elif cookiecutter.support_py36 == 'y' %}3.6{% elif cookiecutter.support_py35 == 'y' %}3.5{% elif cookiecutter.support_py34 == 'y' %}3.4{% else %}3.7{% endif %}', None),
     'sympy': ('https://docs.sympy.org/latest/', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
     'numpy': ('https://docs.scipy.org/doc/numpy/', None),

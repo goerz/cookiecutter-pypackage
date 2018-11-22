@@ -2,6 +2,9 @@
 
 language: python
 python:
+{%- if cookiecutter.support_py37 == 'y' %}
+  - 3.7
+{%- endif %}
 {%- if cookiecutter.support_py36 == 'y' %}
   - 3.6
 {%- endif %}

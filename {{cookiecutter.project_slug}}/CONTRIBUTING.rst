@@ -1,14 +1,13 @@
 .. highlight:: shell
 
-{%if cookiecutter.support_py36 == 'y' %}
+{% if cookiecutter.support_py37 == 'y' %}
+  {%- set latest_venv = '.venv/py37' -%}
+{% elif cookiecutter.support_py36 == 'y' %}
   {%- set latest_venv = '.venv/py36' -%}
-  {%- set latest_test_target = 'test36' -%}
 {% elif cookiecutter.support_py35 == 'y' %}
   {%- set latest_venv = '.venv/py35' -%}
-  {%- set latest_test_target = 'test35' -%}
 {% else %}
   {%- set latest_venv = '.venv/py34' -%}
-  {%- set latest_test_target = 'test34' -%}
 {% endif -%}
 
 ============
