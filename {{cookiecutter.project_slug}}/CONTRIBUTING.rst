@@ -80,7 +80,7 @@ In short,
 7. Push changes to the topic branch on *your* remote
 8. Make a pull request against the base {% if cookiecutter.use_git_flow == 'y' %}develop{% else %}master{% endif %} branch through the Github website of your fork.
 
-The project contains a ``Makefile`` to help with development tasts. In your checked-out clone, do
+The project contains a ``Makefile`` to help with development tasks. In your checked-out clone, do
 
 .. code-block:: console
 
@@ -91,7 +91,7 @@ to see the available make targets.
 {% if cookiecutter.environment_manager == 'conda' %}
 It is strongly recommended that you use the conda_ package manager. The
 ``Makefile`` relies on conda to create local testing and documentation building
-environements (``make test`` and ``make docs``).
+environments (``make test`` and ``make docs``).
 
 Alternatively, you may  use ``make develop-test`` and ``make develop-docs`` to
 run the tests or generate the documentation within your active Python
@@ -196,8 +196,8 @@ to generate the documentation locally.
 {% endif %}
 
 
-Developers' How-Tos
--------------------
+Developers' How-To's
+--------------------
 
 The following assumes your current working directory is a checkout of
 ``{{ cookiecutter.project_slug }}``, and that you have successfully run ``make test`` (which creates

@@ -105,6 +105,11 @@ docs: {{ latest_venv }}/bin/sphinx-build ## generate Sphinx HTML documentation, 
 {%-endif %}
 	$(MAKE) -C docs SPHINXBUILD=../{{ latest_venv }}/bin/sphinx-build html
 	@echo "open docs/_build/html/index.html"
+
+spellcheck: {{ latest_venv }}/bin/sphinx-build ## check spelling in docs
+	@{{ latest_venv }}/bin/pip install sphinxcontrib-spelling
+	SPELLCHECK=en_US $(MAKE) -C docs SPHINXBUILD=../{{ latest_venv }}/bin/sphinx-build spelling
+
 {%-endif -%}
 {%endif %}
 
