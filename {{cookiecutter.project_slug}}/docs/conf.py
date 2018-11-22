@@ -91,6 +91,7 @@ html_sidebars = {
 }
 html_short_title = '%s-%s' % (project, version)
 
+{% raw %}
 # Mathjax settings
 mathjax_config = {
     'extensions': [
@@ -133,6 +134,7 @@ mathjax_config = {
         }
     }
 }
+{% endraw %}
 
 # Napoleon settings
 napoleon_google_docstring = True
