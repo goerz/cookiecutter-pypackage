@@ -15,6 +15,7 @@
   "appveyor": "y",
   "coveralls": "y",
   "sphinx_docs": "y",
+  "use_notebooks": "y",
   "better_apidoc": "y",
   "readthedocs": "y",
   "support_py34": "n",

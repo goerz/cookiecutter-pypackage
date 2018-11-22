@@ -28,6 +28,9 @@ if __name__ == '__main__':
         if '{{ cookiecutter.readthedocs }}' != 'y':
             remove_file('readthedocs.yml')
             remove_file(os.path.join('docs', 'rtd_environment.yml'))
+    if '{{ cookiecutter.use_notebooks }}' != 'y':
+        remove_folder('binder')
+        remove_file(os.path.join('docs', 'nbval_sanitize.cfg'))
     if '{{ cookiecutter.travisci }}' != 'y':
         remove_file('.travis.yml')
     if '{{ cookiecutter.appveyor }}' != 'y':

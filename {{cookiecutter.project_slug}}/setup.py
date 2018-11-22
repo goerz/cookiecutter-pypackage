@@ -28,9 +28,14 @@ requirements = []
 
 dev_requirements = [
     'coverage', 'pytest', 'pytest-cov', 'pytest-xdist', 'twine', 'pep8',
-    'flake8', 'wheel', 'sphinx', 'sphinx-autobuild', 'sphinx_rtd_theme']
+    'flake8', 'wheel', 'sphinx', 'sphinx-autobuild', 'sphinx_rtd_theme',
+    'gitpython', ]
 {%- if cookiecutter.better_apidoc == 'y' %}
 dev_requirements.append('better-apidoc')
+{% endif %}
+{%- if cookiecutter.use_notebooks == 'y' %}
+dev_requirements.extend([
+    'jupyter', 'nbval', 'nbsphinx', 'watermark'])
 {% endif %}
 
 version = get_version('./src/{{ cookiecutter.project_slug }}/__init__.py')

@@ -24,4 +24,4 @@ install:
 build: off
 
 test_script:
-  - ps: pytest --doctest-modules --cov={{ cookiecutter.project_slug }} src tests (get-item docs\*.rst).FullName
+  - ps: pytest --doctest-modules --cov={{ cookiecutter.project_slug }} {% if cookiecutter.use_notebooks == 'y' %}--nbval --sanitize-with docs\nbval_sanitize.cfg{% endif %} src tests (get-item docs\*.rst).FullName {%- if cookiecutter.use_notebooks == 'y' %} (get-item docs\*.ipynb).FullName{% endif %}

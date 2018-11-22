@@ -120,8 +120,14 @@ In order to create topic branches with ``git flow``, after cloning the  ``{{ coo
     $ git flow init
     $ git checkout develop
 
+
+.. Note::
+
+    It is recommended that you use the `AVH Edition of git-flow`_
+
 .. _git-flow: https://github.com/nvie/gitflow#git-flow
 .. _Git Workflow Notes: https://www.asmeurer.com/git-workflow/
+.. _AVH Edition of git-flow: https://github.com/petervanderdoes/gitflow-avh
 {% endif -%}
 .. _Aaron Meurer's Git Workflow Notes:  https://www.asmeurer.com/git-workflow/
 
@@ -146,6 +152,10 @@ whose name start with ``test_``, which contain functions whose names also start
 with ``test_``. Any such functions in any such files are picked up by `pytest`_
 for testing. In addition, doctests_ from any docstring or any documentation
 file (``*.rst``) are picked up (by the `pytest doctest plugin`_).
+{%- if cookiecutter.use_notebooks == 'y' %}
+Lastly, all Jupyter notebooks in the documentation are validated as a test,
+through the `nbval plugin`_.
+{%- endif %}
 
 {% if cookiecutter.coveralls == 'y' %}
 .. _test coverage: https://coveralls.io/github/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}?branch={%- if cookiecutter.use_git_flow == 'y' -%}develop{%- else -%}master{%- endif -%}
@@ -173,7 +183,9 @@ See also the `Matplotlib Sphinx Sheet sheet`_ for some helpful tips.
 
 Each function or class must have a docstring_; this docstring must
 be written in the `"Google Style" format`_ (as implemented by
-Sphinx' `napoleon extension`_).
+Sphinx' `napoleon extension`_). Docstrings and any other part of the
+documentation can include `mathematical formulas in LaTeX syntax`_
+(using mathjax_).
 
 At any point, from a checkout of the ``{{ cookiecutter.project_slug }}`` repository (and
 assuming you have conda_ installed), you may run
@@ -274,12 +286,82 @@ You may also use something like ``Closes #14`` as the last line of your
 commit message to automatically close the issue.
 See `Closing issues using keywords`_ for details.
 
+{% if cookiecutter.use_notebooks == 'y' %}
+How to run a jupyter notebook server for working on notebooks in the docs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A notebook server that is isolated to the proper testing environment can be started via the Makefile::
+
+    $ make jupter-notebook
+
+This is equivalent to::
+
+    $ {{ latest_venv }}/bin/jupyter notebook --config=/dev/null
+
+You may run this with your own options, if you prefer. The
+``--config=/dev/null`` guarantees that the notebook server is completely
+isolated. Otherwise, configuration files from your home directly (see
+`Jupyter’s Common Configuration system`_)  may influence the server. Of
+course, if you know what you're doing, you may want this.
+
+If you prefer, you may also use the newer jupyterlab::
+
+    $ make jupter-lab
+
+
+How to convert a notebook to a script for easier debugging
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Interactive debugging in notebooks is difficult. It becomes much easier if
+you convert the notebook to a script first.  To convert a notebook to an
+(I)Python script and run it with automatic debugging, execute e.g.::
+
+    $ {{ latest_venv }}/bin/jupyter nbconvert --to=python --stdout docs/tutorial.ipynb > debug.py
+    $ {{ latest_venv }}/bin/ipython --pdb debug.py
+
+You can then also set a manual breakpoint by inserting the following line anywhere in the code::
+
+    from IPython.terminal.debugger import set_trace; set_trace() # DEBUG
+
+{%- endif %}
+
+How to commit failing tests{%- if cookiecutter.use_notebooks == 'y' %} or notebooks{%- endif %}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~{%- if cookiecutter.use_notebooks == 'y' %}~~~~~~~~~~~~~{%- endif %}
+
+The test-suite on the ``master`` branch should always pass without error. If you
+would like to commit any example notebooks or tests that currently fail, as a
+form of `test-driven development`_, you have two options:
+
+*   Push onto a topic branch (which are allowed to have failing tests), see
+    :ref:`how-to-work-on-a-topic-branch`. The failing tests can then be fixed by
+    adding commits to the same branch.
+
+*   Mark the test as failing. For normal tests, add a decorator::
+
+        @pytest.mark.xfail
+
+    See the `pytest documentation on skip and xfail`_ for details.
+
+{% if cookiecutter.use_notebooks == 'y' %}
+    For notebooks, the equivalent to the decorator is to add a comment to the
+    first line of the failing cell, either::
+
+        # NBVAL_RAISES_EXCEPTION
+
+    (preferably), or::
+
+        # NBVAL_SKIP
+
+    (this may affect subsequent cells, as the marked cell is not executed at all).
+    See the `documentation of the nbval pluging on skipping and exceptions`_ for details.
+{%- endif %}
+
 How to run a subset of tests
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To run e.g. only the tests defined in ``tests/test_{{ cookiecutter.project_slug }}.py``, use::
 
-    $ ./.venv/py36/bin/pytest tests/test_{{ cookiecutter.project_slug }}.py
+    $ ./{{ latest_venv }}/bin/pytest tests/test_{{ cookiecutter.project_slug }}.py
 
 See the `pytest test selection docs`_ for details.
 

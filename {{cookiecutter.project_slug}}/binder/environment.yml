@@ -1,0 +1,10 @@
+name: binder
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python={%if cookiecutter.support_py36 == 'y' %}3.6{% elif cookiecutter.support_py35 == 'y' %}3.5{% elif cookiecutter.support_py34 == 'y' %}3.4{% else %}3{% endif %}
+  - pip:
+    - matplotlib
+    - watermark
+    - git+https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}.git@{%- if cookiecutter.use_git_flow == 'y' -%}develop{%- else -%}master{%- endif -%}#egg={{ cookiecutter.project_slug }}

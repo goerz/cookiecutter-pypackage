@@ -14,6 +14,7 @@ Features
 * The actual package code is in a `src` directory. See <https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure> for the reasoning behind this.
 * [Travis CI](https://travis-ci.org) and [AppVeyor](http://appveyor.com) support.
 * Sphinx/Read-the-docs support. This includes optional use of the [better_apidoc](https://github.com/goerz/better-apidoc) tool for generating API documentation with templates.
+* Support for Jupyter Notebooks in the Sphinx documentation ([nbsphinx](https://nbsphinx.readthedocs.io/en/latest/)). This includes validation of notebooks as tests through the [nbval plugin](https://nbval.readthedocs.io/en/latest/).
 * Mandatory testing with [pytest](https://docs.pytest.org)
 * Environment management through [`conda`](https://conda.io/docs/)
 * Development tasks are organized in a Makefile. Run `make help` inside the generated project for details.
@@ -56,6 +57,7 @@ Variables
 * `appveyor`: Whether AppVeyor will be used as a Continuous Integration testing service for Windows
 * `coveralls`: Whether to upload coverage data to <http://coveralls.io>. This only work if `travisci` is used.
 * `sphinx_docs`: Whether the package will use Sphinx to generate its documentation
+* `use_notebooks`: Whether Jupyter notebooks will be included in the Sphinx documentation, and validated through pytest. This is not compatible with `support_py34`.
 * `better_apidoc`: Whether to use <https://github.com/goerz/better-apidoc> for generating the package API for Sphinx.
 * `readthedocs`: Whether the Sphinx-documentation will be hosted on <https://readthedocs.org>
 * `support_py34`: Does the package support Python 3.4?
@@ -72,7 +74,7 @@ After you generate a new project from the cookiecutter template, you should do t
 
 *   Declare dependencies in `setup.py`, both for installation and development (testing).  There are no additional [pip requirement files](https://pip.pypa.io/en/stable/user_guide/#requirements-files) (I find them unnecessary).
 
-*   If you are using `conda` and an `environment_manager`, you may list any dependency that you know has a conda package in `CONDA_PACKAGES` in `Makefile`. Also, if you are using Travis CI (`use_travis`), you should add the same packages in the `install` section of `.travis.yml`. Any dependencies not installed as conda packages will still automatically be installed via `pip`, so the use of conda packages is optional. However, if you do use conda packages, you must manually ensure that the list of conda packages in the various locations (`Makefile`, `.travis.yml`) stays in sync.
+*   If you are using `conda` as an `environment_manager`, you may list any dependency that you know has a conda package in `CONDA_PACKAGES` in `Makefile`. Also, if you are using Travis CI (`use_travis`), you should add the same packages in the `install` section of `.travis.yml`. Any dependencies not installed as conda packages will still automatically be installed via `pip`, so the use of conda packages is optional. However, if you do use conda packages, you must manually ensure that the list of conda packages in the various locations (`Makefile`, `.travis.yml`) stays in sync. Note that conda can be extremely slow, so it recommended to only install the base Python via conda, and other dependencies via pip, if possible.
 
 *   If you are using ReadTheDocs (RTD) with conda to host your documentation, you will have to specify the build environment for the documentation in `docs/rtd_environment.yml`.  Packages that are available through conda can be listed directly, other packages must be listed in a pip section. For example,
 
@@ -102,6 +104,8 @@ After you generate a new project from the cookiecutter template, you should do t
 
 *   Activate Coveralls. Log in to <https://coveralls.io>, and click on "Add Repo". Not that coverage data is only uploaded if all tests pass successfully!
 
+*   Review the classifiers in `setup.py`. The full list of PyPI classifiers can be found [here](https://pypi.python.org/pypi?:action=list_classifiers).
+
 *   If the package should be registered on PyPI, upload it. You can do this with `make release`. It is *strongly* recommended that you first try `make test-release` to upload the package to `test.pypi.org`.
 
-*   Review the classifiers in `setup.py`. The full list of PyPI classifiers can be found [here](https://pypi.python.org/pypi?:action=list_classifiers).
+*   Make sure to tag releases on Github

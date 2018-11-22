@@ -63,6 +63,7 @@ Welcome to {{ cookiecutter.project_name }}'s documentation!
    contributing
    {% if cookiecutter.create_author_file == 'y' -%}authors
    {% endif -%}history
+   {% if cookiecutter.use_notebooks == 'y' -%}tutorial.ipynb{% endif %}
 
 
 API

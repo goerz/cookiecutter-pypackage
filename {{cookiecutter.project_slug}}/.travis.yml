@@ -31,7 +31,7 @@ install:
   - pip freeze
 
 script:
-  - pytest --doctest-modules --cov={{ cookiecutter.project_slug }} src tests docs/*.rst
+  - pytest --doctest-modules --cov={{ cookiecutter.project_slug }} {%- if cookiecutter.use_notebooks == 'y' %} --nbval --sanitize-with docs/nbval_sanitize.cfg{% endif %} src tests docs/*.rst {%- if cookiecutter.use_notebooks == 'y' %} docs/*.ipynb{% endif %}
 {%- endif %}
 
 {%- if cookiecutter.coveralls == 'y' %}

@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import os
 import sys
 import datetime
-
+import git
 
 import {{ cookiecutter.project_slug }}
 
@@ -43,6 +43,9 @@ def run_apidoc(_):
 
 # Report broken links as warnings
 nitpicky = True
+nitpick_ignore = [
+    ('py:class', 'callable'),
+]
 
 extensions = [
     'sphinx.ext.autodoc',
@@ -59,6 +62,10 @@ extensions = [
     'dollarmath',
     'sphinx.ext.inheritance_diagram',
 ]
+{% if cookiecutter.use_notebooks == 'y' %}
+extensions.append('nbsphinx')
+{% endif %}
+
 if os.getenv('SPELLCHECK'):
     extensions += 'sphinxcontrib.spelling',
     spelling_show_suggestions = True
@@ -67,10 +74,11 @@ if os.getenv('SPELLCHECK'):
     spelling_ignore_pypi_package_names = True
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3.6', None),
-    'sympy': ('http://docs.sympy.org/latest/', None),
+    'python': ('https://docs.python.org/3.7', None),
+    'sympy': ('https://docs.sympy.org/latest/', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
     'numpy': ('https://docs.scipy.org/doc/numpy/', None),
-    'matplotlib': ('https://matplotlib.org/', None)
+    'matplotlib': ('https://matplotlib.org/', None),
 }
 
 # Add any paths that contain templates here, relative to this directory.
@@ -82,7 +90,14 @@ project = {{ '{0!r}'.format(cookiecutter.project_name) }}
 year = str(datetime.datetime.now().year)
 author = {{ '{0!r}'.format(cookiecutter.full_name) }}
 copyright = '{0}, {1}'.format(year, author)
-version = release = {{ cookiecutter.project_slug }}.__version__
+version = {{ cookiecutter.project_slug }}.__version__
+rootfolder = os.path.join(os.path.dirname(__file__), '..')
+try:
+    last_commit = str(git.Repo(rootfolder).head.commit)[:7]
+    release = last_commit
+except (git.exc.InvalidGitRepositoryError, ValueError):
+    release = version
+numfig = True
 
 pygments_style = 'sphinx'
 extlinks = {
@@ -95,6 +110,7 @@ autoclass_content = 'both'
 autodoc_member_order = 'bysource'
 
 
+html_last_updated_fmt = '%b %d, %Y'
 html_split_index = False
 html_sidebars = {
    '**': ['searchbox.html', 'globaltoc.html', 'sourcelink.html'],
@@ -286,6 +302,21 @@ html_show_sourcelink = False
 # This is the file name suffix for HTML files (e.g. ".xhtml").
 #html_file_suffix = None
 
+{%- if cookiecutter.use_notebooks == 'y' %}
+nbsphinx_prolog = r"""
+{%- raw %}
+{% set docname = env.doc2path(env.docname, base='docs') %}
+{%- endraw %}
+
+.. only:: html
+
+    .. role:: raw-html(raw)
+        :format: html
+
+    :raw-html:`<a href="http://nbviewer.jupyter.org/github/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/blob/{%- raw -%}{{ env.config.release }}/{{ docname }}{%- endraw -%}" target="_blank"><img alt="Render on nbviewer" src="https://img.shields.io/badge/render%20on-nbviewer-orange.svg" style="vertical-align:text-bottom"></a>&nbsp;<a href="https://mybinder.org/v2/gh/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/{%- raw -%}{{ env.config.release }}?filepath={{ docname }{%- endraw -%}}" target="_blank"><img alt="Launch Binder" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>`
+"""
+
+{%- endif %}
 # -----------------------------------------------------------------------------
 
 {%- if cookiecutter.better_apidoc == 'y' %}

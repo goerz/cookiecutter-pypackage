@@ -6,8 +6,8 @@ CONDA_PACKAGES =  {{ cookiecutter.conda_packages }}
 {%- endif %}
 TESTENV =
 #TESTENV = MATPLOTLIBRC=tests
-TESTOPTIONS = --doctest-modules --cov={{ cookiecutter.project_slug }}
-TESTS = src tests docs/*.rst
+TESTOPTIONS = --doctest-modules --cov={{ cookiecutter.project_slug }} {%- if cookiecutter.use_notebooks == 'y' %} --nbval --sanitize-with docs/nbval_sanitize.cfg{% endif %}
+TESTS = src tests docs/*.rst {%- if cookiecutter.use_notebooks == 'y' %} docs/*.ipynb{% endif %}
 {%if cookiecutter.support_py36 == 'y' %}
   {%- set latest_venv = '.venv/py36' -%}
   {%- set latest_test_target = 'test36' -%}
@@ -150,3 +150,27 @@ develop-docs: develop  ## generate Sphinx HTML documentation, including API docs
 {%-endif %}
 	$(MAKE) -C docs html
 	@echo "open docs/_build/html/index.html"
+
+{%- if cookiecutter.use_notebooks == 'y' %}
+{{ latest_venv }}/bin/jupyter: {{ latest_venv }}/bin/py.test
+
+# How to execute notebook files
+%.ipynb.log: %.ipynb {{ latest_venv }}/bin/jupyter
+	@echo ""
+	@{{ latest_venv }}/bin/jupyter nbconvert --to notebook --execute --inplace --allow-errors --ExecutePreprocessor.kernel_name='python3' --config=/dev/null $< 2>&1 | tee $@
+
+NOTEBOOKFILES = $(shell find docs/ -iname '*.ipynb'  -maxdepth 1)
+NOTEBOOKLOGS = $(patsubst %.ipynb,%.ipynb.log,$(NOTEBOOKFILES))
+
+notebooks: $(NOTEBOOKLOGS)  ## re-evaluate the notebooks
+	@echo ""
+	@echo "All notebook are now up to date; the were executed using the python3 kernel"
+	@{{ latest_venv }}/bin/jupyter kernelspec list | grep python3
+
+jupyter-notebook: {{ latest_venv }}/bin/jupyter  ## run a notebook server for editing the examples
+	{{ latest_venv }}/bin/jupyter notebook --config=/dev/null
+
+jupyter-lab: {{ latest_venv }}/bin/jupyter  ## run a jupyterlab server for editing the examples
+	@{{ latest_venv }}/bin/pip install jupyterlab
+	{{ latest_venv }}/bin/jupyter lab --config=/dev/null
+{%-endif %}

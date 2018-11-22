@@ -17,8 +17,14 @@ help:
 clean:
 	@-rm -rf $(BUILDDIR)/*
 	@-rm -rf API/*.rst
+{%- if cookiecutter.use_notebooks == 'y' %}
+	@-rm -f *.log
+{%- endif %}
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
+{%- if cookiecutter.use_notebooks == 'y' %}
+	@find . -type d -iname .ipynb_checkpoints -exec rm -rf "{}" \; | true
+{%- endif %}
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
