@@ -59,8 +59,9 @@ extensions = [
     'sphinx.ext.extlinks',
     'sphinx.ext.ifconfig',
     'sphinx.ext.todo',
-    'dollarmath',
     'sphinx.ext.inheritance_diagram',
+    'dollarmath',
+    'sphinx_autodoc_typehints',
 ]
 {% if cookiecutter.use_notebooks == 'y' %}
 extensions.append('nbsphinx')
