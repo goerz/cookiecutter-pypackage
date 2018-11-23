@@ -36,7 +36,9 @@ Then, create a new project with
 
     cookiecutter gh:goerz/cookiecutter-pypackage3
 
-Follow the prompts.
+Follow the prompts. You can also pass values for variables on the command line, e.g.
+
+    cookiecutter gh:goerz/cookiecutter-pypackage3  --no-input interactive_postsetup=no project_name="My Project"
 
 
 Variables
@@ -44,7 +46,7 @@ Variables
 
 * `full_name`: Full author name, will show up in README, in the module, and on PyPI
 * `email` Author email address
-* `github_username` Username on github
+* `github_username` Username (or organization name) on github
 * `project_name`: The name of the package on PyPI, also the name of the folder that will be generated
 * `project_short_description`: (Short) description to appear as the doc-string of the module, in the documentation of the console script, in the README, and on PyPI
 * `version`: Initial version of the package
