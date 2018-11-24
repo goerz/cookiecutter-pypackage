@@ -9,6 +9,7 @@ dependencies:
   - {{ pkg }}
 {%- endfor %}
   - pip:
+    - sphinx-autodoc-typehints
     - gitpython
 {%- if cookiecutter.better_apidoc == 'y' %}
     - better-apidoc
