@@ -23,7 +23,7 @@
 {%- endif %}
 
 {%- if cookiecutter.coveralls == 'y' %}
-.. image:: https://img.shields.io/coveralls/github/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/badge.svg?branch={%- if cookiecutter.use_git_flow == 'y' -%}develop{%- else -%}master{%- endif -%}
+.. image:: https://img.shields.io/coveralls/github/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/badge.svg?branch={% if cookiecutter.use_git_flow == 'y' %}develop{% else %}master{% endif %}
    :alt: Coveralls
    :target: https://coveralls.io/github/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}?branch={%- if cookiecutter.use_git_flow == 'y' -%}develop{%- else -%}master{%- endif -%}
 {%- endif %}
