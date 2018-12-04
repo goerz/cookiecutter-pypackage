@@ -120,6 +120,7 @@ html_short_title = '%s-%s' % (project, version)
 
 {% raw %}
 # Mathjax settings
+mathjax_path = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js'
 mathjax_config = {
     'extensions': [
         'tex2jax.js', 'AMSmath.js', 'AMSsymbols.js', 'noErrors.js',
