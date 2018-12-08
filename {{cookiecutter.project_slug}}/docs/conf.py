@@ -100,7 +100,7 @@ except (git.exc.InvalidGitRepositoryError, ValueError):
     release = version
 numfig = True
 
-pygments_style = 'sphinx'
+pygments_style = 'friendly'
 extlinks = {
     'issue': ('https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/issues/%s', '#'),
     'pr': ('https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/pull/%s', 'PR #'),
