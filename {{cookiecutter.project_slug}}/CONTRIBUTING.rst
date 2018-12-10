@@ -186,6 +186,19 @@ Sphinx' `napoleon extension`_). Docstrings and any other part of the
 documentation can include `mathematical formulas in LaTeX syntax`_
 (using mathjax_).
 
+For module variables and class attributes, use a docstring "inline" immediately
+after the definition. However, for instance attributes, it is preferable to include
+an "Attributes:" section in the class docstring (instead of using "attribute
+docstrings" in ``__init__``). While attribute docstrings have the benefit that
+it is less likely for there to be a mismatch between the documentation and the
+implementation, they also have some significant drawbacks, for example: They do
+not show up in ``help(<class>)`` or ``<class>?`` in IPython, they tend to make
+``__init__`` much harder to read, and they don't work for classes defined via
+attrs_.
+
+The ``__init__`` method should never have a docstring; it's arguments are
+describes in the class docstring instead.
+
 At any point, from a checkout of the ``{{ cookiecutter.project_slug }}`` repository (and
 assuming you have conda_ installed), you may run
 
@@ -204,6 +217,7 @@ to generate the documentation locally.
 .. _mathjax: http://www.sphinx-doc.org/en/master/usage/extensions/math.html#module-sphinx.ext.mathjax
 .. _BibTeX: https://sphinxcontrib-bibtex.readthedocs.io/en/latest/
 .. _Matplotlib Sphinx Sheet sheet: https://matplotlib.org/sampledoc/cheatsheet.html
+.. _attrs: http://www.attrs.org
 {% endif %}
 
 
@@ -253,7 +267,9 @@ Then, you can push master and delete the topic branch both locally and on Github
 Commit Message Guidelines
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Write commit messages according to this template::
+Write commit messages according to this template:
+
+.. code-block:: none
 
     Short (50 chars or less) summary
 

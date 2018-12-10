@@ -1,5 +1,7 @@
 Github
 Goerz
+IPython
+attrs
 blog
 callables
 docstring
