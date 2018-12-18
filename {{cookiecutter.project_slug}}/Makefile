@@ -122,16 +122,19 @@ coverage: {{ latest_test_target }}  ## generate coverage report in ./htmlcov
 	@echo "open htmlcov/index.html"
 
 test-release: clean-build clean-pyc dist ## package and upload a release to test.pypi.org
+	twine check dist/*
 	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
-{%- if cookiecutter.on_pypi == 'y' %}
+{% if cookiecutter.on_pypi == 'y' %}
 release: clean-build clean-pyc dist ## package and upload a release
+	twine check dist/*
 	twine upload dist/*
 {%endif %}
 
 dist: clean-build clean-pyc ## builds source and wheel package
 	python setup.py sdist
 	python setup.py bdist_wheel
+	twine check dist/*
 	ls -l dist
 
 install: clean-build clean-pyc ## install the package to the active Python's site-packages
