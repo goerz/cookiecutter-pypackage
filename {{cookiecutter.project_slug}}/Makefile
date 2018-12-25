@@ -98,7 +98,9 @@ test36: .venv/py36/bin/py.test ## run tests for Python 3.6
 test37: .venv/py37/bin/py.test ## run tests for Python 3.6
 	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
 
-{%- if cookiecutter.sphinx_docs == 'y' %}
+{{ latest_venv }}/bin/python: {{ latest_venv }}/bin/py.test
+
+{% if cookiecutter.sphinx_docs == 'y' %}
 {{ latest_venv }}/bin/sphinx-build: {{latest_venv }}/bin/py.test
 
 docs: {{ latest_venv }}/bin/sphinx-build ## generate Sphinx HTML documentation, including API docs
@@ -121,26 +123,31 @@ coverage: {{ latest_test_target }}  ## generate coverage report in ./htmlcov
 	{{ latest_venv }}/bin/coverage html
 	@echo "open htmlcov/index.html"
 
-test-release: clean-build clean-pyc dist ## package and upload a release to test.pypi.org
-	twine check dist/*
-	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+test-upload: {{ latest_venv }}/bin/python clean-build clean-pyc dist ## package and upload a release to test.pypi.org
+	{{ latest_venv }}/bin/twine check dist/*
+	{{ latest_venv }}/bin/twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
 {% if cookiecutter.on_pypi == 'y' %}
-release: clean-build clean-pyc dist ## package and upload a release
-	twine check dist/*
-	twine upload dist/*
+upload: {{ latest_venv }}/bin/python clean-build clean-pyc dist ## package and upload a release to pypi.org
+	{{ latest_venv }}/bin/twine check dist/*
+	{{ latest_venv }}/bin/twine upload dist/*
+
+release: clean {{ latest_venv }}/bin/python ## Create a new version, package and upload it
+	@echo "Prepare a relese, then use 'make test-upload' and 'make upload'	"
 {%endif %}
 
-dist: clean-build clean-pyc ## builds source and wheel package
-	python setup.py sdist
-	python setup.py bdist_wheel
-	twine check dist/*
+dist: {{ latest_venv }}/bin/python clean-build clean-pyc ## builds source and wheel package
+	@$< setup.py sdist
+	@$< setup.py bdist_wheel
 	ls -l dist
+
+dist-check: {{ latest_venv }}/bin/python  ## Check all dist files for correctness
+	{{ latest_venv }}/bin/twine check dist/*
 
 install: clean-build clean-pyc ## install the package to the active Python's site-packages
 	pip install .
 
-uninstall:  ## uinstall the package from the active Python's site-packages
+uninstall:  ## uninstall the package from the active Python's site-packages
 	pip uninstall {{ cookiecutter.project_slug }}
 
 develop: clean-build clean-pyc ## install the package to the active Python's site-packages, in develop mode
