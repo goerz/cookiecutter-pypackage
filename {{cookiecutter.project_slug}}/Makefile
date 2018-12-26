@@ -132,8 +132,10 @@ upload: {{ latest_venv }}/bin/python clean-build clean-pyc dist ## package and u
 	{{ latest_venv }}/bin/twine check dist/*
 	{{ latest_venv }}/bin/twine upload dist/*
 
+{% if cookiecutter.use_git_flow == 'n' %}
 release: clean {{ latest_venv }}/bin/python ## Create a new version, package and upload it
 	{{ latest_venv }}/bin/python ./scripts/release.py
+{%endif %}
 {%endif %}
 
 dist: {{ latest_venv }}/bin/python clean-build clean-pyc ## builds source and wheel package

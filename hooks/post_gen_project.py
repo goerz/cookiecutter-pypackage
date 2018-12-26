@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
 import shutil
-from subprocess import call, check_call, check_output, CalledProcessError
+from subprocess import call, check_call, CalledProcessError
 
 PROJECT_DIRECTORY = os.path.realpath(os.path.curdir)
 
@@ -35,7 +35,10 @@ if __name__ == '__main__':
         remove_file('.travis.yml')
     if '{{ cookiecutter.appveyor }}' != 'y':
         remove_file('.appveyor.yml')
-
+    if '{{ cookiecutter.use_git_flow }}' == 'y':
+        remove_file(os.path.join('scripts', 'release.py'))
+        if len(os.listdir('scripts')) == 0:
+            remove_folder('scripts')
     if '{{ cookiecutter.interactive_postsetup }}' == 'y':
         try:
             response = input(
