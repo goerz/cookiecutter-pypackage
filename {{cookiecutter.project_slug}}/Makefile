@@ -133,7 +133,7 @@ upload: {{ latest_venv }}/bin/python clean-build clean-pyc dist ## package and u
 	{{ latest_venv }}/bin/twine upload dist/*
 
 release: clean {{ latest_venv }}/bin/python ## Create a new version, package and upload it
-	@echo "Prepare a relese, then use 'make test-upload' and 'make upload'	"
+	{{ latest_venv }}/bin/python ./scripts/release.py
 {%endif %}
 
 dist: {{ latest_venv }}/bin/python clean-build clean-pyc ## builds source and wheel package
