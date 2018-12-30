@@ -338,6 +338,14 @@ You can then also set a manual breakpoint by inserting the following line anywhe
 
     from IPython.terminal.debugger import set_trace; set_trace() # DEBUG
 
+How to make ``git diff`` work for notebooks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Install nbdime_ and run ``nbdime config-git --enable --global`` to `enable the git integration`_.
+
+.. _nbdime: https://nbdime.readthedocs.io/en/latest/index.html
+.. _enable the git integration: https://nbdime.readthedocs.io/en/latest/index.html#git-integration-quickstart
+
 {%- endif %}
 
 How to commit failing tests{%- if cookiecutter.use_notebooks == 'y' %} or notebooks{%- endif %}
