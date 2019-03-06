@@ -1,4 +1,4 @@
-.PHONY: clean clean-test clean-pyc clean-build clean-venvs line pep8 docs dist install develop help
+.PHONY: clean clean-test clean-pyc clean-build clean-venvs line pep8 {%- if cookiecutter.sphinx_docs == 'y' %}docs{% endif %} dist install develop help
 .DEFAULT_GOAL := help
 
 {%- if cookiecutter.environment_manager == 'conda' %}
@@ -6,8 +6,9 @@ CONDA_PACKAGES =  {{ cookiecutter.conda_packages }}
 {%- endif %}
 TESTENV =
 #TESTENV = MATPLOTLIBRC=tests
-TESTOPTIONS = --doctest-modules --cov={{ cookiecutter.project_slug }} {%- if cookiecutter.use_notebooks == 'y' %} --nbval --sanitize-with docs/nbval_sanitize.cfg{% endif %}
-TESTS = src tests docs/*.rst {%- if cookiecutter.use_notebooks == 'y' %} docs/*.ipynb{% endif %}
+TESTOPTIONS = --doctest-modules --cov={{ cookiecutter.project_slug }} {%- if cookiecutter.sphinx_docs == 'y' %}{%- if cookiecutter.use_notebooks == 'y' %} --nbval --sanitize-with docs/nbval_sanitize.cfg{% endif %}{% endif %}
+TESTS = src tests {%- if cookiecutter.sphinx_docs == 'y' %}docs/*.rst {%- if cookiecutter.use_notebooks == 'y' %} docs/*.ipynb{% endif %}{% endif %}
+
 {%if cookiecutter.support_py37 == 'y' %}
   {%- set latest_venv = '.venv/py37' -%}
   {%- set latest_test_target = 'test37' -%}
@@ -37,7 +38,7 @@ help:
 	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
 clean: clean-build clean-pyc clean-test clean-venvs ## remove all build, test, coverage, and Python artifacts, as well as environments
-	$(MAKE) -C docs clean
+	{% if cookiecutter.sphinx_docs == 'y' %}$(MAKE) -C docs clean{% else %}@echo "Done cleaning"{% endif %}
 
 clean-build: ## remove build artifacts
 	rm -fr build/
@@ -158,6 +159,7 @@ develop: clean-build clean-pyc ## install the package to the active Python's sit
 develop-test: develop ## run tests within the active Python environment
 	$(TESTENV) py.test -v $(TESTOPTIONS) $(TESTS)
 
+{% if cookiecutter.sphinx_docs == 'y' %}
 develop-docs: develop  ## generate Sphinx HTML documentation, including API docs, within the active Python environment
 	$(MAKE) -C docs clean
 {%- if cookiecutter.better_apidoc == 'n' %}
@@ -189,4 +191,5 @@ jupyter-notebook: {{ latest_venv }}/bin/jupyter  ## run a notebook server for ed
 jupyter-lab: {{ latest_venv }}/bin/jupyter  ## run a jupyterlab server for editing the examples
 	@{{ latest_venv }}/bin/pip install jupyterlab
 	{{ latest_venv }}/bin/jupyter lab --config=/dev/null
+{%-endif %}
 {%-endif %}
