@@ -79,11 +79,12 @@ To install the latest released version of {{ cookiecutter.project_name }}, run t
 
 This is the preferred method to install {{ cookiecutter.project_name }}, as it will always install the most recent stable release.
 
-If you don't have `pip`_ installed, the `Python installation guide`_ can guide
+If you don't have `pip`_ installed, the `Python installation guide`_, respectively the `Python Packaging User Guide`_  can guide
 you through the process.
 
 .. _pip: https://pip.pypa.io
 .. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
+.. _Python Packaging User Guide: https://packaging.python.org/tutorials/installing-packages/
 {%endif %}
 
 To install the latest development version of {{ cookiecutter.project_name }} from `Github`_.
