@@ -20,17 +20,17 @@ if __name__ == '__main__':
     if '{{ cookiecutter.create_author_file }}' != 'y':
         remove_file('AUTHORS.rst')
         remove_file('docs/authors.rst')
-
-    if '{{ cookiecutter.sphinx_docs }}' != 'y':
-        remove_folder('docs')
-        remove_file('readthedocs.yml')
-    else:
+    if '{{ cookiecutter.sphinx_docs }}' == 'y':
         if '{{ cookiecutter.readthedocs }}' != 'y':
-            remove_file('readthedocs.yml')
             remove_file(os.path.join('docs', 'rtd_environment.yml'))
-    if '{{ cookiecutter.use_notebooks }}' != 'y':
+            remove_file('readthedocs.yml')
+        if '{{ cookiecutter.use_notebooks }}' != 'y':
+            remove_file(os.path.join('docs', 'nbval_sanitize.cfg'))
+            remove_folder('binder')
+    else:
+        remove_folder('docs')
         remove_folder('binder')
-        remove_file(os.path.join('docs', 'nbval_sanitize.cfg'))
+        remove_file('readthedocs.yml')
     if '{{ cookiecutter.travisci }}' != 'y':
         remove_file('.travis.yml')
     if '{{ cookiecutter.appveyor }}' != 'y':
