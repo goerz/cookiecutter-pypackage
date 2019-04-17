@@ -1,4 +1,4 @@
-.PHONY: clean clean-test clean-pyc clean-build clean-venvs line pep8 {%- if cookiecutter.sphinx_docs == 'y' %}docs{% endif %} dist install develop help
+.PHONY: clean clean-test clean-pyc clean-build clean-venvs line pep8 {% if cookiecutter.sphinx_docs == 'y' %}docs{% endif %} dist install develop help
 .DEFAULT_GOAL := help
 
 {%- if cookiecutter.environment_manager == 'conda' %}
