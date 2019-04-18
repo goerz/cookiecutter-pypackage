@@ -7,7 +7,7 @@ CONDA_PACKAGES =  {{ cookiecutter.conda_packages }}
 TESTENV =
 #TESTENV = MATPLOTLIBRC=tests
 TESTOPTIONS = --doctest-modules --cov={{ cookiecutter.project_slug }} {%- if cookiecutter.sphinx_docs == 'y' %}{%- if cookiecutter.use_notebooks == 'y' %} --nbval --sanitize-with docs/nbval_sanitize.cfg{% endif %}{% endif %}
-TESTS = src tests {%- if cookiecutter.sphinx_docs == 'y' %}docs/*.rst {%- if cookiecutter.use_notebooks == 'y' %} docs/*.ipynb{% endif %}{% endif %}
+TESTS = src tests {%- if cookiecutter.sphinx_docs == 'y' %}docs/*.rst {% if cookiecutter.use_notebooks == 'y' %}docs/*.ipynb{% endif %}{% endif %}
 
 {%if cookiecutter.support_py37 == 'y' %}
   {%- set latest_venv = '.venv/py37' -%}
