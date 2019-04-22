@@ -28,16 +28,30 @@ except OSError:
 requirements = []
 
 dev_requirements = [
-    'coverage', 'pytest', 'pytest-cov', 'pytest-xdist', 'twine', 'pep8',
-    'flake8', 'wheel', 'sphinx', 'sphinx-autobuild', 'sphinx_rtd_theme',
-    'sphinx-autodoc-typehints', 'gitpython', ]
 {%- if cookiecutter.better_apidoc == 'y' %}
-dev_requirements.append('better-apidoc')
+    'better-apidoc'
 {% endif %}
+    'coverage',
+    'flake8',
+    'gitpython',
+    'pep8',
+    'pylint',
+    'pytest',
+    'pytest-cov',
+    'pytest-xdist',
+    'sphinx',
+    'sphinx-autobuild',
+    'sphinx-autodoc-typehints',
+    'sphinx_rtd_theme',
+    'twine',
+    'wheel',
 {%- if cookiecutter.use_notebooks == 'y' %}
-dev_requirements.extend([
-    'jupyter', 'nbval', 'nbsphinx', 'watermark'])
+    'jupyter',
+    'nbval',
+    'nbsphinx',
+    'watermark',
 {% endif %}
+]
 {% if cookiecutter.use_black == 'y' %}
 if sys.version_info >= (3, 6):
     dev_requirements.append('black')
