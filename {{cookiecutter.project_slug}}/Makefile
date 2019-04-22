@@ -110,7 +110,7 @@ test37: .venv/py37/bin/py.test {% if latest_test_target == 'test37' %} black-che
 docs: {{ latest_venv }}/bin/sphinx-build ## generate Sphinx HTML documentation, including API docs
 	$(MAKE) -C docs SPHINXBUILD=../{{ latest_venv }}/bin/sphinx-build clean
 {%- if cookiecutter.better_apidoc == 'n' %}
-	@./{{ latest_venv }}/sphinx-apidoc --separate -o docs/API/ src/{{ cookiecutter.project_slug }}
+	@./{{ latest_venv }}/bin/sphinx-apidoc --separate -o docs/API/ src/{{ cookiecutter.project_slug }}
 	@rm -f docs/API/modules.rst
 {%-endif %}
 	$(MAKE) -C docs SPHINXBUILD=../{{ latest_venv }}/bin/sphinx-build html
