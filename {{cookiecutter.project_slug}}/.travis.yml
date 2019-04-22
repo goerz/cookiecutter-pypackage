@@ -17,6 +17,8 @@ python:
 
 {%- if cookiecutter.environment_manager == 'conda' %}
 install:
+  # any failure stops the build
+  - set -e
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
   - bash miniconda.sh -b -p $HOME/miniconda3
   - source $HOME/miniconda3/etc/profile.d/conda.sh
@@ -34,6 +36,11 @@ install:
   - pip freeze
 
 script:
+  # any failure stops testing immediately
+  - set -e
+{% if cookiecutter.use_black == 'y' %}
+  - if [[ $TRAVIS_PYTHON_VERSION == {% if cookiecutter.support_py37 == 'y' %}'3.7'{% else %}'3.6'{% endif %} ]]; then black {% if cookiecutter.allow_single_quote_strings == 'y' %}--skip-string-normalization {% endif %}--line-length {{ cookiecutter.linelength }} --check src tests; fi
+{% endif %}
   - pytest --doctest-modules --cov={{ cookiecutter.project_slug }} {%- if cookiecutter.use_notebooks == 'y' %} --nbval --sanitize-with docs/nbval_sanitize.cfg{% endif %} src tests docs/*.rst {%- if cookiecutter.use_notebooks == 'y' %} docs/*.ipynb{% endif %}
 {%- endif %}
 

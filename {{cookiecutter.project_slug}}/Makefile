@@ -8,6 +8,9 @@ TESTENV =
 #TESTENV = MATPLOTLIBRC=tests
 TESTOPTIONS = --doctest-modules --cov={{ cookiecutter.project_slug }} {%- if cookiecutter.sphinx_docs == 'y' %}{%- if cookiecutter.use_notebooks == 'y' %} --nbval --sanitize-with docs/nbval_sanitize.cfg{% endif %}{% endif %}
 TESTS = src tests {%- if cookiecutter.sphinx_docs == 'y' %}docs/*.rst {% if cookiecutter.use_notebooks == 'y' %}docs/*.ipynb{% endif %}{% endif %}
+{% if cookiecutter.use_black == 'y' %}
+BLACKOPTIONS = {% if cookiecutter.allow_single_quote_strings == 'y' %}--skip-string-normalization {% endif %}--line-length {{ cookiecutter.linelength }}
+{% endif %}
 
 {%if cookiecutter.support_py37 == 'y' %}
   {%- set latest_venv = '.venv/py37' -%}
@@ -89,14 +92,14 @@ test35: .venv/py35/bin/py.test ## run tests for Python 3.5
 	@conda create -y -m -p .venv/py36 python=3.6 $(CONDA_PACKAGES)
 	@.venv/py36/bin/pip install -e .[dev]
 
-test36: .venv/py36/bin/py.test ## run tests for Python 3.6
+test36: .venv/py36/bin/py.test{% if latest_test_target == 'test36' %} black-check{% endif %} ## run tests for Python 3.6
 	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
 
 .venv/py37/bin/py.test:
 	@conda create -y -m -p .venv/py37 python=3.7 $(CONDA_PACKAGES)
 	@.venv/py37/bin/pip install -e .[dev]
 
-test37: .venv/py37/bin/py.test ## run tests for Python 3.6
+test37: .venv/py37/bin/py.test {% if latest_test_target == 'test37' %} black-check{% endif %} ## run tests for Python 3.7
 	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
 
 {{ latest_venv }}/bin/python: {{ latest_venv }}/bin/py.test
@@ -120,6 +123,14 @@ spellcheck: {{ latest_venv }}/bin/sphinx-build ## check spelling in docs
 {%-endif -%}
 {%endif %}
 
+{% if cookiecutter.use_black == 'y' %}
+black-check: {{ latest_venv }}/bin/python  ## Check all src and test files for complience to "black" code style
+	{{ latest_venv }}/bin/black $(BLACKOPTIONS) --diff --check src tests
+
+black: {{ latest_venv }}/bin/python  ## Apply 'black' code style to all src and test files
+	{{ latest_venv }}/bin/black $(BLACKOPTIONS) src tests
+
+{% endif %}
 coverage: {{ latest_test_target }}  ## generate coverage report in ./htmlcov
 	{{ latest_venv }}/bin/coverage html
 	@echo "open htmlcov/index.html"

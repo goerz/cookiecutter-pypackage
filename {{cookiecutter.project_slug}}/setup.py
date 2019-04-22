@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """The setup script."""
+import sys
 
 from setuptools import setup, find_packages
 
@@ -36,6 +37,10 @@ dev_requirements.append('better-apidoc')
 {%- if cookiecutter.use_notebooks == 'y' %}
 dev_requirements.extend([
     'jupyter', 'nbval', 'nbsphinx', 'watermark'])
+{% endif %}
+{% if cookiecutter.use_black == 'y' %}
+if sys.version_info >= (3, 6):
+    dev_requirements.append('black')
 {% endif %}
 
 version = get_version('./src/{{ cookiecutter.project_slug }}/__init__.py')
@@ -72,7 +77,9 @@ setup(
         'Programming Language :: Python :: 3.7',
 {%- endif %}
     ],
-    description="{{ cookiecutter.project_short_description }}",
+    description=(
+        "{{ cookiecutter.project_short_description }}"
+    ),
     python_requires='>={%if cookiecutter.support_py34 == 'y' %}3.4{% elif cookiecutter.support_py35 == 'y' %}3.5{% elif cookiecutter.support_py36 == 'y' %}3.6{% elif cookiecutter.support_py37 == 'y' %}3.7{% else %}3{% endif %}',
     install_requires=requirements,
     extras_require={

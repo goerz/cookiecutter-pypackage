@@ -165,7 +165,24 @@ through the `nbval plugin`_.
 .. _nbval plugin: https://nbval.readthedocs.io/en/latest/
 
 
-{%- if cookiecutter.sphinx_docs == 'y' %}
+Code Style
+----------
+
+All code must be compatible with :pep:`8`. The line length limit
+is 79 characters, although exceptions are permissible if this improves
+readability significantly.
+
+{% if cookiecutter.use_black == 'y' %}
+Beyond :pep:`8`, this project adopts the `Black code style`_, with
+``{% if cookiecutter.allow_single_quote_strings == 'y' %}--skip-string-normalization {% endif %}--line-length {{ cookiecutter.linelength }}``. You can
+run ``make black-check`` to check adherence to the code style, and
+``make black`` to apply it. The automatic test suite also includes the
+``black`` style check, so style violations are considered errors.
+
+.. _Black code style: https://github.com/ambv/black/#the-black-code-style
+{%- endif %}
+
+{% if cookiecutter.sphinx_docs == 'y' %}
 .. _write-documentation:
 
 Write Documentation
