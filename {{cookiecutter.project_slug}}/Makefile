@@ -6,8 +6,8 @@ CONDA_PACKAGES =  {{ cookiecutter.conda_packages }}
 {%- endif %}
 TESTENV =
 #TESTENV = MATPLOTLIBRC=tests
-TESTOPTIONS = --doctest-modules --cov={{ cookiecutter.project_slug }} {%- if cookiecutter.sphinx_docs == 'y' %}{%- if cookiecutter.use_notebooks == 'y' %} --nbval --sanitize-with docs/nbval_sanitize.cfg{% endif %}{% endif %}
-TESTS = src tests {%- if cookiecutter.sphinx_docs == 'y' %}docs/*.rst {% if cookiecutter.use_notebooks == 'y' %}docs/*.ipynb{% endif %}{% endif %}
+TESTOPTIONS = --doctest-modules --cov={{ cookiecutter.project_slug }}{% if cookiecutter.sphinx_docs == 'y' %}{% if cookiecutter.use_notebooks == 'y' %} --nbval --sanitize-with docs/nbval_sanitize.cfg{% endif %}{% endif %}
+TESTS = src tests{% if cookiecutter.sphinx_docs == 'y' %} docs/*.rst{% if cookiecutter.use_notebooks == 'y' %} docs/*.ipynb{% endif %}{% endif %}
 {% if cookiecutter.use_black == 'y' %}
 BLACKOPTIONS = {% if cookiecutter.allow_single_quote_strings == 'y' %}--skip-string-normalization {% endif %}--line-length {{ cookiecutter.linelength }}
 {% endif %}
