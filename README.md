@@ -1,5 +1,5 @@
-cookiecutter-pypackage3
-=======================
+cookiecutter-pypackage
+======================
 
 A [cookiecutter][] template for a Python 3 package.
 
@@ -35,11 +35,11 @@ First, make sure to have `cookiecutter` installed:
 
 Then, create a new project with
 
-    cookiecutter gh:goerz/cookiecutter-pypackage3
+    cookiecutter gh:goerz/cookiecutter-pypackage
 
 Follow the prompts. You can also pass values for variables on the command line, e.g.
 
-    cookiecutter gh:goerz/cookiecutter-pypackage3  --no-input interactive_postsetup=no project_name="My Project"
+    cookiecutter gh:goerz/cookiecutter-pypackage  --no-input interactive_postsetup=no project_name="My Project"
 
 
 Variables
@@ -69,7 +69,7 @@ Variables
 * `support_py34`: Does the package support Python 3.4?
 * `support_py35`: Does the package support Python 3.5?
 * `support_py36`: Does the package support Python 3.6?
-* `support_py36`: Does the package support Python 3.7? Remember to check any conda-forge packages that you might depend on to support Python 3.7 before enabling this.
+* `support_py37`: Does the package support Python 3.7? Remember to check any conda-forge packages that you might depend on to support Python 3.7 before enabling this.
 * `use_git_flow`: Whether the project uses the [git-flow branching model](https://github.com/nvie/gitflow#git-flow)
 * `interactive_postsetup`: Whether to run the interactive post-setup script, which will e.g. set up git for the project
 
@@ -79,7 +79,7 @@ Post-Setup
 
 After you generate a new project from the cookiecutter template, you should do the following:
 
-*   Declare dependencies in `setup.py`, both for installation and development (testing).  There are no additional [pip requirement files](https://pip.pypa.io/en/stable/user_guide/#requirements-files) (I find them unnecessary).
+*   Declare dependencies in `setup.py`, both for installation and development (testing).  There are no additional [pip requirement files](https://pip.pypa.io/en/stable/user_guide/#requirements-files) (These are for app deployment, not for packages!).
 
 *   If you are using `conda` as an `environment_manager`, you may list any dependency that you know has a conda package in `CONDA_PACKAGES` in `Makefile`. Also, if you are using Travis CI (`use_travis`), you should add the same packages in the `install` section of `.travis.yml`. Any dependencies not installed as conda packages will still automatically be installed via `pip`, so the use of conda packages is optional. However, if you do use conda packages, you must manually ensure that the list of conda packages in the various locations (`Makefile`, `.travis.yml`) stays in sync. Note that conda can be extremely slow, so it recommended to only install the base Python via conda, and other dependencies via pip, if possible.
 
