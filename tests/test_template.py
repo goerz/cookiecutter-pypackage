@@ -43,38 +43,42 @@ def check_default_make_help(project):
     """Check that we have the expected make targets in the default
     configuration"""
     res = make(project, 'help')
-    assert (
-        res.stdout.strip()
-        == dedent(
-            r'''
-            clean                remove all build, test, coverage, and Python artifacts, as well as environments
-            clean-build          remove build artifacts
-            clean-pyc            remove Python file artifacts
-            clean-test           remove test and coverage artifacts
-            clean-venvs          remove testing/build environments
-            lint                 check style with flake8
-            test                 run tests on every Python version
-            docs                 generate Sphinx HTML documentation, including API docs
-            spellcheck           check spelling in docs
-            black-check          Check all src and test files for compliance to 'black' code style
-            black                Apply 'black' code style to all src and test files
-            coverage             generate coverage report in ./htmlcov
-            test-upload          package and upload a release to test.pypi.org
-            upload               package and upload a release to pypi.org
-            release              Create a new version, package and upload it
-            dist                 builds source and wheel package
-            dist-check           Check all dist files for correctness
-            install              install the package to the active Python's site-packages
-            uninstall            uninstall the package from the active Python's site-packages
-            develop              install the package to the active Python's site-packages, in develop mode
-            develop-test         run tests within the active Python environment
-            develop-docs         generate Sphinx HTML documentation, including API docs, within the active Python environment
-            notebooks            re-evaluate the notebooks
-            jupyter-notebook     run a notebook server for editing the examples
-            jupyter-lab          run a jupyterlab server for editing the examples
-    '''
-        ).strip()
-    )
+    stdout = str(res.stdout).strip()
+    expected = dedent(
+        r'''
+        clean                remove all build, test, coverage, and Python artifacts, as well as environments
+        clean-build          remove build artifacts
+        clean-pyc            remove Python file artifacts
+        clean-test           remove test and coverage artifacts
+        clean-venvs          remove testing/build environments
+        lint                 check style with flake8
+        test                 run tests on every Python version
+        docs                 generate Sphinx HTML documentation, including API docs
+        spellcheck           check spelling in docs
+        black-check          Check all src and test files for compliance to 'black' code style
+        black                Apply 'black' code style to all src and test files
+        coverage             generate coverage report in ./htmlcov
+        test-upload          package and upload a release to test.pypi.org
+        upload               package and upload a release to pypi.org
+        release              Create a new version, package and upload it
+        dist                 builds source and wheel package
+        dist-check           Check all dist files for correctness
+        install              install the package to the active Python's site-packages
+        uninstall            uninstall the package from the active Python's site-packages
+        develop              install the package to the active Python's site-packages, in develop mode
+        develop-test         run tests within the active Python environment
+        develop-docs         generate Sphinx HTML documentation, including API docs, within the active Python environment
+        notebooks            re-evaluate the notebooks
+        jupyter-notebook     run a notebook server for editing the examples
+        jupyter-lab          run a jupyterlab server for editing the examples
+        '''
+    ).strip()
+    print("\nOBTAINED")
+    print(repr(stdout))
+    print("\nEXPECTED")
+    print(repr(expected))
+    print("\nCOMPARISON")
+    assert res.stdout == expected
 
 
 def check_black_ok(project):
@@ -161,9 +165,9 @@ CONFIGURATIONS = [
         {'interactive_postsetup': 'n'},
         [
             check_black_ok,
+            check_default_make_help,
             check_make_test,
             check_make_docs,
-            check_default_make_help,
             check_defaults_venvs,
         ],
     ),
