@@ -11,8 +11,10 @@ MODULE_REGEX = r'^[_a-zA-Z][_a-zA-Z0-9]+$'
 module_name = '{{ cookiecutter.project_slug}}'
 
 if not re.match(MODULE_REGEX, module_name):
-    print('ERROR: The project slug (%s) is not a valid Python module name. '
-          'Please do not use a - and use _ instead' % module_name)
+    print(
+        'ERROR: The project slug (%s) is not a valid Python module name. '
+        'Please do not use a - and use _ instead' % module_name
+    )
     sys.exit(1)  # cancel project
 
 executables = ['flake8', 'pep8', 'pip', 'twine']
@@ -22,5 +24,15 @@ if "{{ cookiecutter.environment_manager }}" == 'tox':
     executables.append('tox')
 for executable in executables:
     if not shutil.which(executable):
-        print('WARNING: You do not have the %s executable. You should '
-              'install it now through pip/conda' % executable)
+        print(
+            'WARNING: You do not have the %s executable. You should '
+            'install it now through pip/conda' % executable
+        )
+if (
+    "{{ cookiecutter.support_py34 }}" == "y"
+) and "{{ cookiecutter.use_notebooks }}" == "y":
+    print(
+        "ERROR: You cannot use Jupyter in a project that still "
+        "supports Python 3.4"
+    )
+    sys.exit(1)  # cancel project
