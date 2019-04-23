@@ -29,8 +29,8 @@ requirements = []
 
 dev_requirements = [
 {%- if cookiecutter.better_apidoc == 'y' %}
-    'better-apidoc'
-{% endif %}
+    'better-apidoc',
+{%- endif %}
     'coverage',
     'flake8',
     'gitpython',
@@ -50,12 +50,12 @@ dev_requirements = [
     'nbval',
     'nbsphinx',
     'watermark',
-{% endif %}
+{%- endif %}
 ]
 {% if cookiecutter.use_black == 'y' %}
 if sys.version_info >= (3, 6):
     dev_requirements.append('black')
-{% endif %}
+{%- endif %}
 
 version = get_version('./src/{{ cookiecutter.project_slug }}/__init__.py')
 
