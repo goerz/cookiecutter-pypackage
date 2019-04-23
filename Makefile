@@ -1,5 +1,5 @@
 .PHONY: clean help test
-TESTOPTIONS = -v -x -s --pdb
+TESTOPTIONS = -v -x -s
 
 define PRINT_HELP_PYSCRIPT
 import re, sys
@@ -27,4 +27,4 @@ clean:  ## remove testing artifacts
 
 
 test: .venv/bin/cookiecutter  ## run tests
-	./.venv/bin/pytest $(TESTOPTIONS) -v tests
+	PATH=./.venv/bin:$(PATH) pytest $(TESTOPTIONS) -v tests
