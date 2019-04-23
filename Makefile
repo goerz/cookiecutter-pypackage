@@ -19,7 +19,7 @@ help:  ## show this help
 
 .venv/bin/cookiecutter:
 	python -m venv .venv
-	.venv/bin/pip install pytest-cookies ipython pdbpp black isort pre-commit flake8 pylint
+	.venv/bin/pip install pytest-cookies ipython pdbpp black isort pre-commit flake8 pylint pep8 twine
 
 
 clean:  ## remove testing artifacts
