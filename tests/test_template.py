@@ -84,6 +84,37 @@ def check_default_make_help(project):
     assert stdout == expected
 
 
+def check_minimal_make_help(project):
+    """Check that we have the expected make targets in the minimal
+    configuration"""
+    res = make(project, 'help')
+    stdout = res.stdout
+    # some versions of make print additional information that we need to strip
+    stdout = re.sub(r'make.*: Entering directory.*\n', '', stdout)
+    stdout = re.sub(r'make.*: Leaving directory.*', '', stdout)
+    stdout = stdout.strip()
+    expected = dedent(
+        r'''
+        clean                remove all build, test, coverage, and Python artifacts, as well as environments
+        clean-build          remove build artifacts
+        clean-pyc            remove Python file artifacts
+        clean-test           remove test and coverage artifacts
+        clean-venvs          remove testing/build environments
+        lint                 check style with flake8
+        test                 run tests on every Python version
+        coverage             generate coverage report in ./htmlcov
+        test-upload          package and upload a release to test.pypi.org
+        dist                 builds source and wheel package
+        dist-check           Check all dist files for correctness
+        install              install the package to the active Python's site-packages
+        uninstall            uninstall the package from the active Python's site-packages
+        develop              install the package to the active Python's site-packages, in develop mode
+        develop-test         run tests within the active Python environment
+        '''
+    ).strip()
+    assert stdout == expected
+
+
 def check_black_ok(project):
     """Check that the entire project passes inspection with black"""
     cmd = [
@@ -172,6 +203,33 @@ CONFIGURATIONS = [
             check_make_test,
             check_make_docs,
             check_defaults_venvs,
+        ],
+    ),
+    (
+        'minimal',
+        {
+            "create_author_file": "n",
+            "use_isort": "n",
+            "use_black": "n",
+            "on_pypi": "n",
+            "travisci": "n",
+            "appveyor": "n",
+            "coveralls": "n",
+            "sphinx_docs": "n",
+            "use_notebooks": "n",
+            "better_apidoc": "n",
+            "readthedocs": "n",
+            "support_py34": "n",
+            "support_py35": "n",
+            "support_py36": "n",
+            "support_py37": "y",
+            "use_git_flow": "n",
+            "interactive_postsetup": "n",
+        },
+        [
+            check_black_ok,
+            check_make_test,
+            check_minimal_make_help,
         ],
     ),
     (
