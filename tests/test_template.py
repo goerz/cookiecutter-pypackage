@@ -1,6 +1,8 @@
 """Test the project template"""
-from textwrap import dedent
+import re
 import subprocess
+from textwrap import dedent
+
 import pytest
 
 
@@ -43,7 +45,11 @@ def check_default_make_help(project):
     """Check that we have the expected make targets in the default
     configuration"""
     res = make(project, 'help')
-    stdout = str(res.stdout).strip()
+    stdout = res.stdout
+    # some versions of make print additional information that we need to strip
+    stdout = re.sub(r'make.*: Entering directory.*\n', '', stdout)
+    stdout = re.sub(r'make.*: Leaving directory.*', '', stdout)
+    stdout = stdout.strip()
     expected = dedent(
         r'''
         clean                remove all build, test, coverage, and Python artifacts, as well as environments
@@ -73,12 +79,7 @@ def check_default_make_help(project):
         jupyter-lab          run a jupyterlab server for editing the examples
         '''
     ).strip()
-    print("\nOBTAINED")
-    print(repr(stdout))
-    print("\nEXPECTED")
-    print(repr(expected))
-    print("\nCOMPARISON")
-    assert res.stdout == expected
+    assert stdout == expected
 
 
 def check_black_ok(project):
