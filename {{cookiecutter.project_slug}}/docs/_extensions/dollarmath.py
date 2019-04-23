@@ -74,4 +74,3 @@ def test_dollar():
 
 if __name__ == "__main__":
     test_dollar()
-

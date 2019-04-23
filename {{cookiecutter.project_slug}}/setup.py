@@ -96,9 +96,7 @@ setup(
     ),
     python_requires='>={%if cookiecutter.support_py34 == 'y' %}3.4{% elif cookiecutter.support_py35 == 'y' %}3.5{% elif cookiecutter.support_py36 == 'y' %}3.6{% elif cookiecutter.support_py37 == 'y' %}3.7{% else %}3{% endif %}',
     install_requires=requirements,
-    extras_require={
-        'dev': dev_requirements,
-    },
+    extras_require={'dev': dev_requirements},
 {%- if cookiecutter.open_source_license in license_classifiers %}
     license="{{ cookiecutter.open_source_license }}",
 {%- endif %}

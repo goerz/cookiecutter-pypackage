@@ -77,6 +77,32 @@ def check_default_make_help(project):
     )
 
 
+def check_black_ok(project):
+    """Check that the entire project passes inspection with black"""
+    cmd = [
+        'black',
+        '--skip-string-normalization',
+        '--line-length',
+        '79',
+        '--diff',
+        '--check',
+        str(project),
+    ]
+    result = subprocess.run(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=False,
+        timeout=600,
+        check=False,
+        universal_newlines=True,
+    )
+    if result.returncode != 0:
+        print("\n'%s' STDOUT:\n%s" % (" ".join(cmd), result.stdout))
+        print("\n'%s' STDERR:\n%s" % (" ".join(cmd), result.stderr))
+    assert result.returncode == 0
+
+
 def check_custom_metadata(project):
     """Check that the project was generated with the custom metadata from the
     CONFIGURATION"""
@@ -134,6 +160,7 @@ CONFIGURATIONS = [
         'default',
         {'interactive_postsetup': 'n'},
         [
+            check_black_ok,
             check_make_test,
             check_make_docs,
             check_default_make_help,

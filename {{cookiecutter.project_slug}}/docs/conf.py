@@ -8,11 +8,6 @@ import git
 
 import {{ cookiecutter.project_slug }}
 
-from unittest import mock
-MOCK_MODULES = ['numpy', 'numpy.linalg', 'scipy', 'scipy.sparse', 'matplotlib',
-    'matplotlib.pyplot']
-sys.modules.update((mod_name, mock.Mock()) for mod_name in MOCK_MODULES)
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -25,17 +20,20 @@ sys.path.insert(0, os.path.abspath('_extensions'))
 def run_apidoc(_):
     """Generage API documentation"""
     import better_apidoc
-    better_apidoc.main([
-        'better-apidoc',
-        '-t',
-        os.path.join('.', '_templates'),
-        '--force',
-        '--no-toc',
-        '--separate',
-        '-o',
-        os.path.join('.', 'API'),
-        os.path.join('..', 'src', '{{ cookiecutter.project_slug }}'),
-    ])
+
+    better_apidoc.main(
+        [
+            'better-apidoc',
+            '-t',
+            os.path.join('.', '_templates'),
+            '--force',
+            '--no-toc',
+            '--separate',
+            '-o',
+            os.path.join('.', 'API'),
+            os.path.join('..', 'src', '{{ cookiecutter.project_slug }}'),
+        ]
+    )
 {%- endif %}
 
 
@@ -43,9 +41,7 @@ def run_apidoc(_):
 
 # Report broken links as warnings
 nitpicky = True
-nitpick_ignore = [
-    ('py:class', 'callable'),
-]
+nitpick_ignore = [('py:class', 'callable')]
 
 extensions = [
     'sphinx.ext.autodoc',
@@ -68,7 +64,7 @@ extensions.append('nbsphinx')
 {% endif %}
 
 if os.getenv('SPELLCHECK'):
-    extensions += 'sphinxcontrib.spelling',
+    extensions.append('sphinxcontrib.spelling')
     spelling_show_suggestions = True
     spelling_lang = os.getenv('SPELLCHECK')
     spelling_word_list_filename = 'spelling_wordlist.txt'
@@ -109,13 +105,12 @@ extlinks = {
 # autodoc settings
 autoclass_content = 'both'
 autodoc_member_order = 'bysource'
+autodoc_mock_imports = []  # e.g.: 'numpy', 'scipy', ...
 
 
 html_last_updated_fmt = '%b %d, %Y'
 html_split_index = False
-html_sidebars = {
-   '**': ['searchbox.html', 'globaltoc.html', 'sourcelink.html'],
-}
+html_sidebars = {'**': ['searchbox.html', 'globaltoc.html', 'sourcelink.html']}
 html_short_title = '%s-%s' % (project, version)
 
 {% raw %}
@@ -126,7 +121,11 @@ mathjax_config = {
     'jax': ['input/TeX', 'output/SVG'],
     'TeX': {
         'extensions': [
-            "AMSmath.js", "AMSsymbols.js", "noErrors.js", "noUndefined.js"],
+            "AMSmath.js",
+            "AMSsymbols.js",
+            "noErrors.js",
+            "noUndefined.js",
+        ],
         'Macros': {
             'tr': ['{\\operatorname{tr}}', 0],
             'diag': ['{\\operatorname{diag}}', 0],
@@ -143,7 +142,10 @@ mathjax_config = {
             'bra': ['{\\langle#1\\vert}', 1],
             'ket': ['{\\vert#1\\rangle}', 1],
             'Bra': ['{\\left\\langle#1\\right\\vert}', 1],
-            'Braket': ['{\\left\\langle #1\\vphantom{#2} \\mid #2\\vphantom{#1}\\right\\rangle}', 2],
+            'Braket': [
+                '{\\left\\langle #1\\vphantom{#2} \\mid #2\\vphantom{#1}\\right\\rangle}',
+                2,
+            ],
             'Ket': ['{\\left\\vert#1\\right\\rangle}', 1],
             'mat': ['{\\mathbf{#1}}', 1],
             'op': ['{\\hat{#1}}', 1],
@@ -164,8 +166,8 @@ mathjax_config = {
             'Real': ['{\\mathbb{R}}', 0],
             'Complex': ['{\\mathbb{C}}', 0],
             'Integer': ['{\\mathbb{N}}', 0],
-        }
-    }
+        },
+    },
 }
 {% endraw %}
 
@@ -184,7 +186,9 @@ napoleon_use_rtype = True
 # -- Monkeypatch for instance attribs (sphinx bug #2044) -----------------------
 
 from sphinx.ext.autodoc import (
-    ClassLevelDocumenter, InstanceAttributeDocumenter)
+    ClassLevelDocumenter,
+    InstanceAttributeDocumenter,
+)
 
 
 def iad_add_directive_header(self, sig):
@@ -203,9 +207,10 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 # a list of builtin themes.
 if not on_rtd:  # only import and set the theme if we're building docs locally
     import sphinx_rtd_theme
+
     html_theme = "sphinx_rtd_theme"
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-#html_theme = 'sphinxdoc'
+# html_theme = 'sphinxdoc'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -217,23 +222,23 @@ html_theme_options = {
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = []
+# html_theme_path = []
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-#html_title = None
+# html_title = None
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
-#html_short_title = None
+# html_short_title = None
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+# html_logo = None
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-#html_favicon = 'favicon.ico'
+# html_favicon = 'favicon.ico'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -242,44 +247,44 @@ html_static_path = ['_static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
-#html_last_updated_fmt = '%b %d, %Y'
+# html_last_updated_fmt = '%b %d, %Y'
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
-#html_use_smartypants = True
+# html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-#html_sidebars = {}
+# html_sidebars = {}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
-#html_additional_pages = {}
+# html_additional_pages = {}
 
 # If false, no module index is generated.
-#html_domain_indices = True
+# html_domain_indices = True
 
 # If false, no index is generated.
-#html_use_index = True
+# html_use_index = True
 
 # If true, the index is split into individual pages for each letter.
-#html_split_index = False
+# html_split_index = False
 
 # If true, links to the reST sources are added to the pages.
 html_show_sourcelink = False
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
-#html_show_sphinx = True
+# html_show_sphinx = True
 
 # If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
-#html_show_copyright = True
+# html_show_copyright = True
 
 # If true, an OpenSearch description file will be output, and all pages will
 # contain a <link> tag referring to it.  The value of this option must be the
 # base URL from which the finished HTML is served.
-#html_use_opensearch = ''
+# html_use_opensearch = ''
 
 # This is the file name suffix for HTML files (e.g. ".xhtml").
-#html_file_suffix = None
+# html_file_suffix = None
 
 {%- if cookiecutter.use_notebooks == 'y' %}
 nbsphinx_prolog = r"""

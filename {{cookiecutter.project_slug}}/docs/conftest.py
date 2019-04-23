@@ -9,7 +9,6 @@ import {{ cookiecutter.project_slug }}
 def set_doctest_env(doctest_namespace):
     doctest_namespace['{{ cookiecutter.project_slug }}'] = {{ cookiecutter.project_slug }}
 
-
 {% if cookiecutter.use_notebooks == 'y' %}
 def pytest_collectstart(collector):
     """Ignore stderr and javascript output when verifying notebooks.
@@ -20,6 +19,8 @@ def pytest_collectstart(collector):
     """
     if collector.__class__.__name__ == 'IPyNbFile':
         collector.skip_compare += (
-            'application/javascript', 'stderr',
-            'application/vnd.jupyter.widget-view+json')
-{% endif %}
+            'application/javascript',
+            'stderr',
+            'application/vnd.jupyter.widget-view+json',
+        )
+{%- endif %}
