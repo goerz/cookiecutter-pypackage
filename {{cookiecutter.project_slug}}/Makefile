@@ -76,28 +76,28 @@ test: {%if cookiecutter.support_py34 == 'y' %}test34{% endif %} {% if cookiecutt
 
 .venv/py34/bin/py.test:
 	@conda create -y -m -p .venv/py34 python=3.4 $(CONDA_PACKAGES)
-	@.venv/py34/bin/pip install -e .[dev]
+	@.venv/py34/bin/python -m pip install -e .[dev]
 
 test34: .venv/py34/bin/py.test ## run tests for Python 3.4
 	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
 
 .venv/py35/bin/py.test:
 	@conda create -y -m -p .venv/py35 python=3.5 $(CONDA_PACKAGES)
-	@.venv/py35/bin/pip install -e .[dev]
+	@.venv/py35/bin/python -m pip install -e .[dev]
 
 test35: .venv/py35/bin/py.test ## run tests for Python 3.5
 	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
 
 .venv/py36/bin/py.test:
 	@conda create -y -m -p .venv/py36 python=3.6 $(CONDA_PACKAGES)
-	@.venv/py36/bin/pip install -e .[dev]
+	@.venv/py36/bin/python -m pip install -e .[dev]
 
 test36: .venv/py36/bin/py.test{% if latest_test_target == 'test36' %} black-check{% endif %} ## run tests for Python 3.6
 	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
 
 .venv/py37/bin/py.test:
 	@conda create -y -m -p .venv/py37 python=3.7 $(CONDA_PACKAGES)
-	@.venv/py37/bin/pip install -e .[dev]
+	@.venv/py37/bin/python -m pip install -e .[dev]
 
 test37: .venv/py37/bin/py.test {% if latest_test_target == 'test37' %} black-check{% endif %} ## run tests for Python 3.7
 	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
@@ -117,14 +117,14 @@ docs: {{ latest_venv }}/bin/sphinx-build ## generate Sphinx HTML documentation, 
 	@echo "open docs/_build/html/index.html"
 
 spellcheck: {{ latest_venv }}/bin/sphinx-build ## check spelling in docs
-	@{{ latest_venv }}/bin/pip install sphinxcontrib-spelling
+	@{{ latest_venv }}/bin/python -m pip install sphinxcontrib-spelling
 	SPELLCHECK=en_US $(MAKE) -C docs SPHINXBUILD=../{{ latest_venv }}/bin/sphinx-build spelling
 
 {%-endif -%}
 {%endif %}
 
 {% if cookiecutter.use_black == 'y' %}
-black-check: {{ latest_venv }}/bin/python  ## Check all src and test files for complience to "black" code style
+black-check: {{ latest_venv }}/bin/python  ## Check all src and test files for compliance to 'black' code style
 	{{ latest_venv }}/bin/black $(BLACKOPTIONS) --diff --check src tests
 
 black: {{ latest_venv }}/bin/python  ## Apply 'black' code style to all src and test files
@@ -200,7 +200,7 @@ jupyter-notebook: {{ latest_venv }}/bin/jupyter  ## run a notebook server for ed
 	{{ latest_venv }}/bin/jupyter notebook --config=/dev/null
 
 jupyter-lab: {{ latest_venv }}/bin/jupyter  ## run a jupyterlab server for editing the examples
-	@{{ latest_venv }}/bin/pip install jupyterlab
+	@{{ latest_venv }}/bin/python -m pip install jupyterlab
 	{{ latest_venv }}/bin/jupyter lab --config=/dev/null
 {%-endif %}
 {%-endif %}
