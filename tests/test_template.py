@@ -1,6 +1,12 @@
-"""Test the project template"""
+"""Test the project template
+
+Running the test suite requires Python >= 3.6, although the cookiecutter
+template itself also works with older versions of Python 3
+"""
+import pprint
 import re
 import subprocess
+from pathlib import Path
 from textwrap import dedent
 
 import pytest
@@ -27,6 +33,114 @@ def make(project, *targets):
         print("\n'%s' STDOUT:\n%s" % (" ".join(cmd), result.stdout))
         print("\n'%s' STDERR:\n%s" % (" ".join(cmd), result.stderr))
     return result
+
+
+def get_files(directory):
+    """Return a list of file in the given directory, relative to that
+    directory"""
+    return list(
+        str(p.relative_to(directory))
+        for p in Path(directory).glob('**/*')
+        if p.is_file()
+    )
+
+
+def files_match_expected(directory, expected):
+    """Check the the files in `directory` match the list in `expected`
+
+    The `expected` list should contain file paths relative to `directory`.
+    Ordering is irrelevant.
+    """
+    files = get_files(directory)
+    if set(files) != set(expected):
+        print("\nFiles in directory %s:" % directory)
+        pprint.pprint(files)
+        print("\nMissing:")
+        pprint.pprint(list(set(expected).difference(files)) or None)
+        print("\nUnexpected:")
+        pprint.pprint(list(set(files).difference(expected)) or None)
+        return False
+    else:
+        return True
+
+
+def check_default_files(project):
+    """Check the list of files for the default settings
+
+    This check must run before any 'make test' or 'make docs'
+    """
+    expected_files = [
+        '.appveyor.yml',
+        '.editorconfig',
+        '.github/ISSUE_TEMPLATE.md',
+        '.gitignore',
+        '.pylintrc',
+        '.travis.yml',
+        'AUTHORS.rst',
+        'CONTRIBUTING.rst',
+        'HISTORY.rst',
+        'LICENSE',
+        'MANIFEST.in',
+        'Makefile',
+        'README.rst',
+        'binder/environment.yml',
+        'docs/API/.gitignore',
+        'docs/Makefile',
+        'docs/_extensions/dollarmath.py',
+        'docs/_static/mycss.css',
+        'docs/_templates/breadcrumbs.html',
+        'docs/_templates/layout.html',
+        'docs/_templates/module.rst',
+        'docs/_templates/package.rst',
+        'docs/authors.rst',
+        'docs/conf.py',
+        'docs/conftest.py',
+        'docs/contributing.rst',
+        'docs/history.rst',
+        'docs/index.rst',
+        'docs/make.bat',
+        'docs/nbval_sanitize.cfg',
+        'docs/readme.rst',
+        'docs/rtd_environment.yml',
+        'docs/spelling_wordlist.txt',
+        'docs/tutorial.ipynb',
+        'pyproject.toml',
+        'readthedocs.yml',
+        'scripts/release.py',
+        'setup.cfg',
+        'setup.py',
+        'src/conftest.py',
+        'src/python_boilerplate/__init__.py',
+        'tests/test_python_boilerplate.py',
+    ]
+    assert files_match_expected(str(project), expected_files)
+
+
+def check_minimal_files(project):
+    """Check the list of files for the minimal settings
+
+    This check must run before any 'make test' or 'make docs'
+    """
+    expected_files = [
+        '.editorconfig',
+        '.github/ISSUE_TEMPLATE.md',
+        '.gitignore',
+        '.pylintrc',
+        'CONTRIBUTING.rst',
+        'HISTORY.rst',
+        'LICENSE',
+        'MANIFEST.in',
+        'Makefile',
+        'README.rst',
+        'pyproject.toml',
+        'scripts/release.py',
+        'setup.cfg',
+        'setup.py',
+        'src/conftest.py',
+        'src/python_boilerplate/__init__.py',
+        'tests/test_python_boilerplate.py',
+    ]
+    assert files_match_expected(str(project), expected_files)
 
 
 def check_make_test(project):
@@ -200,6 +314,7 @@ CONFIGURATIONS = [
         [
             check_black_ok,
             check_default_make_help,
+            check_default_files,
             check_make_test,
             check_make_docs,
             check_defaults_venvs,
@@ -228,6 +343,7 @@ CONFIGURATIONS = [
         },
         [
             check_black_ok,
+            check_minimal_files,
             check_make_test,
             check_minimal_make_help,
         ],
