@@ -34,6 +34,9 @@ dev_requirements = [
     'coverage',
     'flake8',
     'gitpython',
+{%- if cookiecutter.use_isort == 'y' %}
+    'isort',
+{%- endif %}
     'pep8',
     'pylint',
     'pytest',

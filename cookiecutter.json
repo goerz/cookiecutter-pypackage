@@ -10,6 +10,7 @@
   "open_source_license": ["BSD license", "MIT license", "ISC license", "Apache Software License 2.0", "GNU General Public License v3"],
   "environment_manager": ["conda"],
   "conda_packages": "",
+  "use_isort": "y",
   "use_black": "y",
   "linelength": "79",
   "allow_single_quote_strings": "y",

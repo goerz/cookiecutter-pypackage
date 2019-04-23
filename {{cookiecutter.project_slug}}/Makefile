@@ -92,14 +92,14 @@ test35: .venv/py35/bin/py.test ## run tests for Python 3.5
 	@conda create -y -m -p .venv/py36 python=3.6 $(CONDA_PACKAGES)
 	@.venv/py36/bin/python -m pip install -e .[dev]
 
-test36: .venv/py36/bin/py.test{% if latest_test_target == 'test36' %} black-check{% endif %} ## run tests for Python 3.6
+test36: .venv/py36/bin/py.test{% if latest_test_target == 'test36' %}{% if cookiecutter.use_isort == 'y' %} isort-check{% endif %}{% if cookiecutter.use_black == 'y' %} black-check{% endif %}{% endif %} ## run tests for Python 3.6
 	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
 
 .venv/py37/bin/py.test:
 	@conda create -y -m -p .venv/py37 python=3.7 $(CONDA_PACKAGES)
 	@.venv/py37/bin/python -m pip install -e .[dev]
 
-test37: .venv/py37/bin/py.test {% if latest_test_target == 'test37' %} black-check{% endif %} ## run tests for Python 3.7
+test37: .venv/py37/bin/py.test {% if latest_test_target == 'test37' %}{% if cookiecutter.use_isort == 'y' %} isort-check{% endif %}{% if cookiecutter.use_black == 'y' %} black-check{% endif %}{% endif %} ## run tests for Python 3.7
 	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
 
 {{ latest_venv }}/bin/python: {{ latest_venv }}/bin/py.test
@@ -129,6 +129,14 @@ black-check: {{ latest_venv }}/bin/python  ## Check all src and test files for c
 
 black: {{ latest_venv }}/bin/python  ## Apply 'black' code style to all src and test files
 	{{ latest_venv }}/bin/black $(BLACKOPTIONS) src tests
+
+{% endif %}
+{% if cookiecutter.use_isort == 'y' %}
+isort-check: {{ latest_venv }}/bin/python  ## Check all src and test files for correctly sorted imports
+	{{ latest_venv }}/bin/isort --recursive --check-only src tests
+
+isort: {{ latest_venv }}/bin/python  ## Sort imports in all src and test files
+	{{ latest_venv }}/bin/isort --recursive src tests
 
 {% endif %}
 coverage: {{ latest_test_target }}  ## generate coverage report in ./htmlcov

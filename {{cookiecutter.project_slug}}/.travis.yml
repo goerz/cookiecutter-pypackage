@@ -38,6 +38,9 @@ install:
 script:
   # any failure stops testing immediately
   - set -e
+{% if cookiecutter.use_isort == 'y' %}
+  - if [[ $TRAVIS_PYTHON_VERSION == {% if cookiecutter.support_py37 == 'y' %}'3.7'{% else %}'3.6'{% endif %} ]]; then isort --recursive --check-only src tests; fi
+{% endif %}
 {% if cookiecutter.use_black == 'y' %}
   - if [[ $TRAVIS_PYTHON_VERSION == {% if cookiecutter.support_py37 == 'y' %}'3.7'{% else %}'3.6'{% endif %} ]]; then black {% if cookiecutter.allow_single_quote_strings == 'y' %}--skip-string-normalization {% endif %}--line-length {{ cookiecutter.linelength }} --check src tests; fi
 {% endif %}

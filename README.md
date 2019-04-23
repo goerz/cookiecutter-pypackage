@@ -14,6 +14,7 @@ Features
 
 * Python 3 only. Although it would be straightforward to also add Python 2 support to your package by hand.
 * The actual package code is in a `src` directory. See <https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure> for the reasoning behind this.
+* Support for [`isort`](https://github.com/timothycrosley/isort#readme)
 * Support for [Black code style](https://github.com/ambv/black#readme)
 * [Travis CI](https://travis-ci.org) and [AppVeyor](http://appveyor.com) support.
 * Sphinx/Read-the-docs support. This includes optional use of the [better_apidoc](https://github.com/goerz/better-apidoc) tool for generating API documentation with templates.
@@ -57,6 +58,7 @@ Variables
 * `open_source_license`: The license under which the code will be available (choice of MIT, GPL, or Public Domain)
 * `environment_manager`: The system for managing virtual environments. Currently, only `conda` is supported.
 * `conda_packages`: If using `conda` as an environment manager, which packages to install from the conda repository (i.e., not through pip). If you package extensively uses the Python scientific stack, and virtual environments are managed through conda, you might consider using the anaconda meta package, and set `anaconda pytest-cov pytest-xdist coverage sphinx_rtd_theme flake8`.
+* `use_isort`: Whether to require that all imports are sorted according to the `isort` utility
 * `use_black`: Whether the [black code formatter](https://github.com/ambv/black) should be used to enforce code styles. This enables `make black`, `make black-check`, and automatic checking of the code style on Travis.
 * `linelength`: The allowed line length of code lines. PEP 8 requires 79 characters. This is not a hard limit; code may extend beyond the `linelength` if this increases readability.
 * `allow_single_quote_strings`: Whether strings are allowed to be enclosed in single quotes, cf. `-S` option of `black`.

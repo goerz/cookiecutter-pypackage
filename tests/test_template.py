@@ -63,6 +63,8 @@ def check_default_make_help(project):
         spellcheck           check spelling in docs
         black-check          Check all src and test files for compliance to 'black' code style
         black                Apply 'black' code style to all src and test files
+        isort-check          Check all src and test files for correctly sorted imports
+        isort                Sort imports in all src and test files
         coverage             generate coverage report in ./htmlcov
         test-upload          package and upload a release to test.pypi.org
         upload               package and upload a release to pypi.org
