@@ -11,7 +11,7 @@ install:
   - conda activate
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
-  - conda create -q -n test_env python=$TRAVIS_PYTHON_VERSION
+  - conda create -q -n test_env python=$TRAVIS_PYTHON_VERSION pandoc
   - conda activate test_env
   - pip freeze
 
