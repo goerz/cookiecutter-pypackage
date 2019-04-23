@@ -255,6 +255,36 @@ def check_black_ok(project):
     assert result.returncode == 0
 
 
+def check_isort_ok(project):
+    """Check that the entire project passes inspection with black.
+
+    The documentation conf.py is excluded.
+    """
+    cmd = [
+        'isort',
+        '--recursive',
+        '--check-only',
+        '--diff',
+        '--skip',
+        'docs/conf.py',
+        '.',
+    ]
+    result = subprocess.run(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=False,
+        cwd=str(project),
+        timeout=600,
+        check=False,
+        universal_newlines=True,
+    )
+    if result.returncode != 0:
+        print("\n'%s' STDOUT:\n%s" % (" ".join(cmd), result.stdout))
+        print("\n'%s' STDERR:\n%s" % (" ".join(cmd), result.stderr))
+    assert result.returncode == 0
+
+
 def check_custom_metadata(project):
     """Check that the project was generated with the custom metadata from the
     CONFIGURATION"""
@@ -312,6 +342,7 @@ CONFIGURATIONS = [
         'default',
         {'interactive_postsetup': 'n'},
         [
+            check_isort_ok,
             check_black_ok,
             check_default_make_help,
             check_default_files,
@@ -380,7 +411,9 @@ CONFIGURATIONS = [
             "github_username": "qucontrol",
             "project_name": "My-Py-Package",
             "project_slug": "mypypackage",
-            "project_short_description": "This project is generated with custom metadata",
+            "project_short_description": (
+                "This project is generated with custom metadata"
+            ),
             "version": "1.0.0-dev",
             "interactive_postsetup": 'n',
         },

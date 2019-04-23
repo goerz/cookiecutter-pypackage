@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
+import datetime
 import os
 import sys
-import datetime
+
 import git
 
 import {{ cookiecutter.project_slug }}
