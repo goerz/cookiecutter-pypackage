@@ -265,6 +265,7 @@ def check_isort_ok(project):
         '--recursive',
         '--check-only',
         '--diff',
+        '--verbose',
         '--skip',
         'docs/conf.py',
         '.',
