@@ -155,6 +155,14 @@ def check_make_docs(project):
     assert res.returncode == 0
 
 
+def check_dist(project):
+    """Check that we can make a well-formed sdist and wheel"""
+    res = make(project, 'dist', 'dist-check')
+    assert res.returncode == 0
+    assert len(list(Path(project.join('dist')).glob('*.whl'))) == 1
+    assert len(list(Path(project.join('dist')).glob('*.tar.gz'))) == 1
+
+
 def check_default_make_help(project):
     """Check that we have the expected make targets in the default
     configuration"""
@@ -349,6 +357,7 @@ CONFIGURATIONS = [
             check_default_files,
             check_make_test,
             check_make_docs,
+            check_dist,
             check_defaults_venvs,
         ],
     ),
@@ -378,6 +387,7 @@ CONFIGURATIONS = [
             check_minimal_files,
             check_make_test,
             check_minimal_make_help,
+            check_dist,
         ],
     ),
     (
@@ -437,6 +447,8 @@ def test_template(cookies, name, context, checkers):
             project folder as its input
     """
     result = cookies.bake(extra_context=context)
+    if result.exception is not None:
+        print(str(result.exception))
     assert result.exit_code == 0
     assert result.exception is None
     assert result.project.isdir()
