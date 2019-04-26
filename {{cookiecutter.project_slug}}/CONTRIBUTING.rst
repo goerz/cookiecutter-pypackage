@@ -199,10 +199,18 @@ requirements. These hooks are managed through the `pre-commit framework`_.
    ``pre-commit install`` from within the project root folder.
 
 .. _pre-commit framework: https://pre-commit.com
-{%- else %}
+{% else %}
 The code style is enforced as part of the test suite, so style violations are
 considered errors.
-{%- endif %}
+{% endif %}
+You may use ``make flake8-check`` and ``make pylint-check`` for additional
+checks on the code with flake8_ and pylint_, but there is no strict requirement
+for a perfect score with either one of these linters. They only serve as a
+guideline for code that might be improved.
+
+.. _flake8: http://flake8.pycqa.org
+.. _pylint: http://pylint.pycqa.org
+
 
 {% if cookiecutter.sphinx_docs == 'y' %}
 .. _write-documentation:
@@ -324,8 +332,6 @@ https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_sl
 .. _PyPI: http://pypi.org
 .. _twine: https://twine.readthedocs.io/en/latest/
 .. _pip: https://pip.readthedocs.io/en/stable/
-
-
 
 
 Developers' How-Tos

@@ -183,8 +183,13 @@ def check_default_make_help(project):
         clean-pyc            remove Python file artifacts
         clean-test           remove test and coverage artifacts
         clean-venvs          remove testing/build environments
-        lint                 check style with flake8
+        flake8-check         check style with flake8
+        pylint-check         check style with pylint
         test                 run tests on every supported Python version
+        test34               run tests for Python 3.4
+        test35               run tests for Python 3.5
+        test36               run tests for Python 3.6
+        test37               run tests for Python 3.7
         pre-commit-hooks     install pre-commit hooks
         docs                 generate Sphinx HTML documentation, including API docs
         spellcheck           check spelling in docs
@@ -228,8 +233,13 @@ def check_minimal_make_help(project):
         clean-pyc            remove Python file artifacts
         clean-test           remove test and coverage artifacts
         clean-venvs          remove testing/build environments
-        lint                 check style with flake8
+        flake8-check         check style with flake8
+        pylint-check         check style with pylint
         test                 run tests on every supported Python version
+        test34               run tests for Python 3.4
+        test35               run tests for Python 3.5
+        test36               run tests for Python 3.6
+        test37               run tests for Python 3.7
         coverage             generate coverage report in ./htmlcov
         test-upload          package and upload a release to test.pypi.org
         dist                 builds source and wheel package

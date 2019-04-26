@@ -17,17 +17,14 @@ if not re.match(MODULE_REGEX, module_name):
     )
     sys.exit(1)  # cancel project
 
-executables = ['flake8', 'pep8', 'pip', 'twine']
+executables = []
 if "{{ cookiecutter.environment_manager }}" == 'conda':
     executables.append('conda')
 if "{{ cookiecutter.environment_manager }}" == 'tox':
     executables.append('tox')
 for executable in executables:
     if not shutil.which(executable):
-        print(
-            'WARNING: You do not have the %s executable. You should '
-            'install it now through pip/conda' % executable
-        )
+        print('WARNING: You do not have the %s executable.' % executable)
 if (
     "{{ cookiecutter.support_py34 }}" == "y"
 ) and "{{ cookiecutter.use_notebooks }}" == "y":
