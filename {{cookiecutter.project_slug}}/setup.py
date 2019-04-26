@@ -38,6 +38,9 @@ dev_requirements = [
     'isort',
 {%- endif %}
     'pep8',
+{%- if cookiecutter.use_pre_commit == 'y' %}
+    'pre-commit',
+{%- endif %}
     'pylint',
     'pytest',
     'pytest-cov',

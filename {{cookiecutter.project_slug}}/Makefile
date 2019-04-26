@@ -1,4 +1,4 @@
-.PHONY: clean clean-test clean-pyc clean-build clean-venvs line pep8 {% if cookiecutter.sphinx_docs == 'y' %}docs{% endif %} dist install develop help
+.PHONY: help clean clean-build clean-pyc clean-test clean-venvs lint test {%- if cookiecutter.sphinx_docs == 'y' %} docs{% endif %} spellcheck {%- if cookiecutter.use_black == 'y' %} black-check black{% endif %} {%- if cookiecutter.use_isort == 'y' %} isort-check isort{% endif %} coverage test-upload upload release dist dist-check install uninstall develop develop-test develop-docs {%- if cookiecutter.use_notebooks == 'y' %} notebooks jupyter-notebook jupyter-lab{% endif %}
 .DEFAULT_GOAL := help
 
 {%- if cookiecutter.environment_manager == 'conda' %}
@@ -37,7 +37,7 @@ for line in sys.stdin:
 endef
 export PRINT_HELP_PYSCRIPT
 
-help:
+help:  ## show this help
 	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
 clean: clean-build clean-pyc clean-test clean-venvs ## remove all build, test, coverage, and Python artifacts, as well as environments
@@ -72,11 +72,14 @@ pep8: ## check style with pep8
 	pep8 src tests
 
 {% if cookiecutter.environment_manager == 'conda' %}
-test: {%if cookiecutter.support_py34 == 'y' %}test34{% endif %} {% if cookiecutter.support_py35 == 'y' %}test35{% endif %} {% if cookiecutter.support_py36 == 'y' %}test36{% endif %} {% if cookiecutter.support_py37 == 'y' %}test37{% endif %} ## run tests on every Python version
+test: {%-if cookiecutter.support_py34 == 'y' %} test34{% endif %} {%- if cookiecutter.support_py35 == 'y' %} test35{% endif %} {%- if cookiecutter.support_py36 == 'y' %} test36{% endif %} {%- if cookiecutter.support_py37 == 'y' %} test37{% endif %} ## run tests on every supported Python version
 
 .venv/py34/bin/py.test:
 	@conda create -y -m -p .venv/py34 python=3.4 $(CONDA_PACKAGES)
 	@.venv/py34/bin/python -m pip install -e .[dev]
+{%- if cookiecutter.use_pre_commit == 'y' and latest_venv == '.venv/py34' %}
+	@{{ latest_venv }}/bin/python scripts/install-pre-commit.py
+{%- endif %}
 
 test34: .venv/py34/bin/py.test ## run tests for Python 3.4
 	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
@@ -84,6 +87,9 @@ test34: .venv/py34/bin/py.test ## run tests for Python 3.4
 .venv/py35/bin/py.test:
 	@conda create -y -m -p .venv/py35 python=3.5 $(CONDA_PACKAGES)
 	@.venv/py35/bin/python -m pip install -e .[dev]
+{%- if cookiecutter.use_pre_commit == 'y' and latest_venv == '.venv/py35' %}
+	@{{ latest_venv }}/bin/python scripts/install-pre-commit.py
+{%- endif %}
 
 test35: .venv/py35/bin/py.test ## run tests for Python 3.5
 	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
@@ -91,6 +97,9 @@ test35: .venv/py35/bin/py.test ## run tests for Python 3.5
 .venv/py36/bin/py.test:
 	@conda create -y -m -p .venv/py36 python=3.6 $(CONDA_PACKAGES)
 	@.venv/py36/bin/python -m pip install -e .[dev]
+{%- if cookiecutter.use_pre_commit == 'y' and latest_venv == '.venv/py36' %}
+	@{{ latest_venv }}/bin/python scripts/install-pre-commit.py
+{%- endif %}
 
 test36: .venv/py36/bin/py.test{% if latest_test_target == 'test36' %}{% if cookiecutter.use_isort == 'y' %} isort-check{% endif %}{% if cookiecutter.use_black == 'y' %} black-check{% endif %}{% endif %} ## run tests for Python 3.6
 	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
@@ -98,11 +107,19 @@ test36: .venv/py36/bin/py.test{% if latest_test_target == 'test36' %}{% if cooki
 .venv/py37/bin/py.test:
 	@conda create -y -m -p .venv/py37 python=3.7 $(CONDA_PACKAGES)
 	@.venv/py37/bin/python -m pip install -e .[dev]
+{%- if cookiecutter.use_pre_commit == 'y' and latest_venv == '.venv/py37' %}
+	@{{ latest_venv }}/bin/python scripts/install-pre-commit.py
+{%- endif %}
 
 test37: .venv/py37/bin/py.test {% if latest_test_target == 'test37' %}{% if cookiecutter.use_isort == 'y' %} isort-check{% endif %}{% if cookiecutter.use_black == 'y' %} black-check{% endif %}{% endif %} ## run tests for Python 3.7
 	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
 
 {{ latest_venv }}/bin/python: {{ latest_venv }}/bin/py.test
+
+
+{%- if cookiecutter.use_pre_commit == 'y' %}
+pre-commit-hooks: {{ latest_venv }}/bin/py.test  ## install pre-commit hooks
+{%- endif %}
 
 {% if cookiecutter.sphinx_docs == 'y' %}
 {{ latest_venv }}/bin/sphinx-build: {{latest_venv }}/bin/py.test

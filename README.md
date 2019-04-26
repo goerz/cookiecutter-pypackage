@@ -16,6 +16,7 @@ Features
 * The actual package code is in a `src` directory. See <https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure> for the reasoning behind this.
 * Support for [`isort`](https://github.com/timothycrosley/isort#readme)
 * Support for [Black code style](https://github.com/ambv/black#readme)
+* Support for [pre-commit](https://pre-commit.com) git hooks
 * [Travis CI](https://travis-ci.org) and [AppVeyor](http://appveyor.com) support.
 * Sphinx/Read-the-docs support. This includes optional use of the [better_apidoc](https://github.com/goerz/better-apidoc) tool for generating API documentation with templates.
 * Support for Jupyter Notebooks in the Sphinx documentation ([nbsphinx](https://nbsphinx.readthedocs.io/en/latest/)). This includes validation of notebooks as tests through the [nbval plugin](https://nbval.readthedocs.io/en/latest/).
@@ -60,6 +61,7 @@ Variables
 * `conda_packages`: If using `conda` as an environment manager, which packages to install from the conda repository (i.e., not through pip). If you package extensively uses the Python scientific stack, and virtual environments are managed through conda, you might consider using the anaconda meta package, and set `anaconda pytest-cov pytest-xdist coverage sphinx_rtd_theme flake8`.
 * `use_isort`: Whether to require that all imports are sorted according to the `isort` utility
 * `use_black`: Whether the [black code formatter](https://github.com/ambv/black) should be used to enforce code styles. This enables `make black`, `make black-check`, and automatic checking of the code style on Travis.
+* `use_pre_commit`: Whether to use [pre-commit](https://pre-commit.com) to manage git pre-commit hooks. A local hook for checking for trailing whitespace and DEBUG lines is always included, as well as third-party hooks for `isort` and `black` if `use_isort` and `use_black` are True.
 * `linelength`: The allowed line length of code lines. PEP 8 requires 79 characters. This is not a hard limit; code may extend beyond the `linelength` if this increases readability.
 * `allow_single_quote_strings`: Whether strings are allowed to be enclosed in single quotes, cf. `-S` option of `black`.
 * `on_pypi`: Whether the package will be uploaded to the Python Package Index
@@ -117,6 +119,8 @@ After you generate a new project from the cookiecutter template, you should do t
 
 *   Review the classifiers in `setup.py`. The full list of PyPI classifiers can be found [here](https://pypi.python.org/pypi?:action=list_classifiers).
 
-*   If the package should be registered on PyPI, upload it. You can do this with `make release`. It is *strongly* recommended that you first try `make test-release` to upload the package to `test.pypi.org`.
+*   If you are using [pre-commit](https://pre-commit.com), review the `.pre-commit-config.yaml` file, especially for whether you will want to use more recent `rev`s for third-party hooks.
 
-*   Make sure to tag releases on Github
+*   If the package should be registered on PyPI, upload it. You can do this with `make release`.
+
+*   Make sure to tag releases on Github (using a leading `v` in the tag name, e.g. `v0.1.0`)

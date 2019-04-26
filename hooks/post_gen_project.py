@@ -39,6 +39,12 @@ if __name__ == '__main__':
         remove_file(os.path.join('scripts', 'release.py'))
         if len(os.listdir('scripts')) == 0:
             remove_folder('scripts')
+    if '{{ cookiecutter.use_pre_commit }}' != 'y':
+        remove_file('.pre-commit-config.yaml')
+        remove_file(os.path.join('scripts', 'install-pre-commit.py'))
+        remove_file(os.path.join('scripts', 'pre-commit.py'))
+        if len(os.listdir('scripts')) == 0:
+            remove_folder('scripts')
     if '{{ cookiecutter.interactive_postsetup }}' == 'y':
         try:
             response = input(

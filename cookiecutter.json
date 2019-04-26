@@ -12,6 +12,7 @@
   "conda_packages": "",
   "use_isort": "y",
   "use_black": "y",
+  "use_pre_commit": "y",
   "linelength": "79",
   "allow_single_quote_strings": "y",
   "on_pypi": "y",

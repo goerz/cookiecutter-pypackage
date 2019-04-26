@@ -74,6 +74,7 @@ def check_default_files(project):
         '.editorconfig',
         '.github/ISSUE_TEMPLATE.md',
         '.gitignore',
+        '.pre-commit-config.yaml',
         '.pylintrc',
         '.travis.yml',
         'AUTHORS.rst',
@@ -106,6 +107,8 @@ def check_default_files(project):
         'docs/tutorial.ipynb',
         'pyproject.toml',
         'readthedocs.yml',
+        'scripts/install-pre-commit.py',
+        'scripts/pre-commit.py',
         'scripts/release.py',
         'setup.cfg',
         'setup.py',
@@ -174,13 +177,15 @@ def check_default_make_help(project):
     stdout = stdout.strip()
     expected = dedent(
         r'''
+        help                 show this help
         clean                remove all build, test, coverage, and Python artifacts, as well as environments
         clean-build          remove build artifacts
         clean-pyc            remove Python file artifacts
         clean-test           remove test and coverage artifacts
         clean-venvs          remove testing/build environments
         lint                 check style with flake8
-        test                 run tests on every Python version
+        test                 run tests on every supported Python version
+        pre-commit-hooks     install pre-commit hooks
         docs                 generate Sphinx HTML documentation, including API docs
         spellcheck           check spelling in docs
         black-check          Check all src and test files for compliance to 'black' code style
@@ -217,13 +222,14 @@ def check_minimal_make_help(project):
     stdout = stdout.strip()
     expected = dedent(
         r'''
+        help                 show this help
         clean                remove all build, test, coverage, and Python artifacts, as well as environments
         clean-build          remove build artifacts
         clean-pyc            remove Python file artifacts
         clean-test           remove test and coverage artifacts
         clean-venvs          remove testing/build environments
         lint                 check style with flake8
-        test                 run tests on every Python version
+        test                 run tests on every supported Python version
         coverage             generate coverage report in ./htmlcov
         test-upload          package and upload a release to test.pypi.org
         dist                 builds source and wheel package
@@ -367,6 +373,7 @@ CONFIGURATIONS = [
             "create_author_file": "n",
             "use_isort": "n",
             "use_black": "n",
+            "use_pre_commit": "n",
             "on_pypi": "n",
             "travisci": "n",
             "appveyor": "n",

@@ -176,10 +176,34 @@ readability significantly.
 Beyond :pep:`8`, this project adopts the `Black code style`_, with
 ``{% if cookiecutter.allow_single_quote_strings == 'y' %}--skip-string-normalization {% endif %}--line-length {{ cookiecutter.linelength }}``. You can
 run ``make black-check`` to check adherence to the code style, and
-``make black`` to apply it. The automatic test suite also includes the
-``black`` style check, so style violations are considered errors.
+``make black`` to apply it.
 
 .. _Black code style: https://github.com/ambv/black/#the-black-code-style
+{%- endif %}
+
+{% if cookiecutter.use_isort == 'y' %}
+Imports within python modules must be sorted according to the isort_
+configuration in ``setup.cfg``. The command ``make isort-check`` checks whether
+all imports are sorted correctly, and ``make isort`` modifies all Python
+modules in-place with the proper sorting.
+
+.. _isort: https://github.com/timothycrosley/isort#readme
+{%- endif %}
+
+{% if cookiecutter.use_pre_commit == 'y' %}
+The code style is enforced as part of the test suite, as well as through git
+pre-commit hooks that prevent committing code not does not meet the
+requirements. These hooks are managed through the `pre-commit framework`_.
+
+.. warning::
+   After cloning the ``{{ cookiecutter.project_slug }}`` repository, you must run
+   ``make pre-commit-hooks``, or (if you have ``pre-commit`` installed)
+   ``pre-commit install`` from within the project root folder.
+
+.. _pre-commit framework: https://pre-commit.com
+{%- else %}
+The code style is enforced as part of the test suite, so style violations are
+considered errors.
 {%- endif %}
 
 {% if cookiecutter.sphinx_docs == 'y' %}
