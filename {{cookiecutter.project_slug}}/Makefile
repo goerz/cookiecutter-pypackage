@@ -80,7 +80,7 @@ test: {%-if cookiecutter.support_py34 == 'y' %} test34{% endif %} {%- if cookiec
 
 .venv/py34/bin/py.test:
 	@conda create -y -m -p .venv/py34 python=3.4 $(CONDA_PACKAGES)
-	@.venv/py34/bin/python -m pip install -e .[dev]
+	@PIP_USE_PEP517=false .venv/py34/bin/python -m pip install -e .[dev]
 {%- if cookiecutter.use_pre_commit == 'y' and latest_venv == '.venv/py34' %}
 	@{{ latest_venv }}/bin/python scripts/install-pre-commit.py
 {%- endif %}
@@ -90,7 +90,7 @@ test34: .venv/py34/bin/py.test ## run tests for Python 3.4
 
 .venv/py35/bin/py.test:
 	@conda create -y -m -p .venv/py35 python=3.5 $(CONDA_PACKAGES)
-	@.venv/py35/bin/python -m pip install -e .[dev]
+	@PIP_USE_PEP517=false .venv/py35/bin/python -m pip install -e .[dev]
 {%- if cookiecutter.use_pre_commit == 'y' and latest_venv == '.venv/py35' %}
 	@{{ latest_venv }}/bin/python scripts/install-pre-commit.py
 {%- endif %}
@@ -100,7 +100,7 @@ test35: .venv/py35/bin/py.test ## run tests for Python 3.5
 
 .venv/py36/bin/py.test:
 	@conda create -y -m -p .venv/py36 python=3.6 $(CONDA_PACKAGES)
-	@.venv/py36/bin/python -m pip install -e .[dev]
+	@PIP_USE_PEP517=false .venv/py36/bin/python -m pip install -e .[dev]
 {%- if cookiecutter.use_pre_commit == 'y' and latest_venv == '.venv/py36' %}
 	@{{ latest_venv }}/bin/python scripts/install-pre-commit.py
 {%- endif %}
@@ -110,7 +110,7 @@ test36: .venv/py36/bin/py.test{% if latest_test_target == 'test36' %}{% if cooki
 
 .venv/py37/bin/py.test:
 	@conda create -y -m -p .venv/py37 python=3.7 $(CONDA_PACKAGES)
-	@.venv/py37/bin/python -m pip install -e .[dev]
+	@PIP_USE_PEP517=false .venv/py37/bin/python -m pip install -e .[dev]
 {%- if cookiecutter.use_pre_commit == 'y' and latest_venv == '.venv/py37' %}
 	@{{ latest_venv }}/bin/python scripts/install-pre-commit.py
 {%- endif %}
@@ -194,7 +194,7 @@ uninstall:  ## uninstall the package from the active Python's site-packages
 	pip uninstall {{ cookiecutter.project_slug }}
 
 develop: clean-build clean-pyc ## install the package to the active Python's site-packages, in develop mode
-	pip install -e .
+	PIP_USE_PEP517=false pip install -e .
 
 develop-test: develop ## run tests within the active Python environment
 	$(TESTENV) py.test -v $(TESTOPTIONS) $(TESTS)
