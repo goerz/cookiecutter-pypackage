@@ -51,6 +51,7 @@ clean-build: ## remove build artifacts
 	rm -fr dist/
 	rm -fr .eggs/
 	rm -fr src/*.egg-info
+	rm -fr pip-wheel-metadata/
 	find tests src -name '*.egg-info' -exec rm -fr {} +
 	find tests src -name '*.egg' -exec rm -f {} +
 
