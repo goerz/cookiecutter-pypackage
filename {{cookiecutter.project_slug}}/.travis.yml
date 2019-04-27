@@ -28,7 +28,7 @@ install:
   - conda create -q -n test_env python=$TRAVIS_PYTHON_VERSION {{ cookiecutter.conda_packages }}
   - conda activate test_env
   - conda config --append channels conda-forge
-  - pip install -e .[dev]
+  - pip install .[dev]
   - pip freeze
 {%- if cookiecutter.coveralls == 'y' %}
   - pip install coveralls
