@@ -194,7 +194,7 @@ uninstall:  ## uninstall the package from the active Python's site-packages
 	pip uninstall {{ cookiecutter.project_slug }}
 
 develop: clean-build clean-pyc ## install the package to the active Python's site-packages, in develop mode
-	PIP_USE_PEP517=false pip install -e .
+	PIP_USE_PEP517=false pip install -e .[dev]
 
 develop-test: develop ## run tests within the active Python environment
 	$(TESTENV) py.test -v $(TESTOPTIONS) $(TESTS)
