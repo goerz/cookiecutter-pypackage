@@ -124,3 +124,5 @@ After you generate a new project from the cookiecutter template, you should do t
 *   If the package should be registered on PyPI, upload it. You can do this with `make release`.
 
 *   Make sure to tag releases on Github (using a leading `v` in the tag name, e.g. `v0.1.0`)
+
+* Activate branch protection for the `master` branch (and `develop` branch, if using the git flow branching model), to prohibit history rewriting for these branches.
