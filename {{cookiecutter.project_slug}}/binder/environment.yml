@@ -3,7 +3,7 @@ channels:
   - defaults
   - conda-forge
 dependencies:
-  - python={% if cookiecutter.support_py37 == 'y' %}3.7{% elif cookiecutter.support_py36 == 'y' %}3.6{% elif cookiecutter.support_py35 == 'y' %}3.5{% elif cookiecutter.support_py34 == 'y' %}3.4{% else %}3{% endif %}
+  - python={{ cookiecutter.main_python }}
   - pip:
     - matplotlib
     - watermark

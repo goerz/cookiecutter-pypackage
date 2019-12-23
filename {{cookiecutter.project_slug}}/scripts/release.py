@@ -31,17 +31,17 @@ def make_release(package_name):
     click.confirm("Do you want to make a release?", abort=True)
     check_git_clean()
     new_version = ask_for_release_version(package_name)
-    run_tests()
     set_version(join('.', 'src', package_name, '__init__.py'), new_version)
     edit_history(new_version)
     while not check_dist():
         click.confirm(
             "Fix errors manually! Continue?", default=True, abort=True
         )
-    check_docs()
     make_release_commit(new_version)
-    make_upload(test=True)
+    check_docs()
+    run_tests()
     push_release_commit()
+    make_upload(test=True)
     make_upload(test=False)
     make_and_push_tag(new_version)
     next_dev_version = new_version + '+dev'
@@ -117,7 +117,17 @@ def check_git_clean():
 
 def run_tests():
     """Run 'make test'"""
-    run(['make', 'test'], check=True)
+    success = False
+    while not success:
+        try:
+            run(['make', 'test'], check=True)
+        except CalledProcessError as exc_info:
+            print("Failed tests: %s\n" % exc_info)
+            print("Fix the tests and ammend the release commit.")
+            print("Then continue.\n")
+            click.confirm("Continue?", default=True, abort=True)
+        else:
+            success = True
 
 
 def split_version(version, base=True):
@@ -296,17 +306,10 @@ def check_docs():
 
 
 def make_release_commit(version):
-    """Commit 'Bump version to xxx and update HISTORY'"""
+    """Commit Release"""
     click.confirm("Make release commit?", default=True, abort=True)
     run(
-        [
-            'git',
-            'commit',
-            '-a',
-            '-m',
-            "Bump version to %s and update HISTORY" % version,
-        ],
-        check=True,
+        ['git', 'commit', '-a', '-m', "Release %s" % version,], check=True,
     )
 
 

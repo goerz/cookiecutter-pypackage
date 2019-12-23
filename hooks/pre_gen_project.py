@@ -2,8 +2,8 @@ import re
 import sys
 import shutil
 
-if not sys.version_info >= (3, 3):
-    print('ERROR: You must be running Python >= 3.3')
+if not sys.version_info >= (3, 5):
+    print('ERROR: You must be running Python >= 3.5')
     sys.exit(1)  # cancel project
 
 MODULE_REGEX = r'^[_a-zA-Z][_a-zA-Z0-9]+$'
@@ -17,19 +17,11 @@ if not re.match(MODULE_REGEX, module_name):
     )
     sys.exit(1)  # cancel project
 
-executables = []
-if "{{ cookiecutter.environment_manager }}" == 'conda':
-    executables.append('conda')
-if "{{ cookiecutter.environment_manager }}" == 'tox':
-    executables.append('tox')
+executables = ['tox', 'python{{ cookiecutter.main_python }}']
 for executable in executables:
     if not shutil.which(executable):
         print('WARNING: You do not have the %s executable.' % executable)
-if (
-    "{{ cookiecutter.support_py34 }}" == "y"
-) and "{{ cookiecutter.use_notebooks }}" == "y":
-    print(
-        "ERROR: You cannot use Jupyter in a project that still "
-        "supports Python 3.4"
-    )
-    sys.exit(1)  # cancel project
+if "{{ cookiecutter.docshosting }}" == "Doctr":
+    if "{{ cookiecutter.travisci }}" != "y":
+        print('ERROR: Using Doctr requires that you also use Travis CI')
+        sys.exit(1)  # cancel project

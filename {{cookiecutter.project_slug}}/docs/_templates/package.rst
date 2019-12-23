@@ -22,7 +22,8 @@
        {%- endfor %}
     {%- endif -%}
 
-{% if subpackages %}
+{%- if subpackages %}
+
     Subpackages:
 
     .. toctree::
@@ -40,7 +41,7 @@
 {%- set exceptions = get_members(typ='exception', in_list='__all__', include_imported=True, out_format='table') -%}
 {%- set classes = get_members(typ='class', in_list='__all__', include_imported=True, out_format='table') -%}
 {%- set functions = get_members(typ='function', in_list='__all__', include_imported=True, out_format='table') -%}
-{%- set data = get_members(typ='data', in_list='__all__', include_imported=True, out_format='table') -%}
+{%- set data = get_members(typ='data', in_list='__all__', include_imported=True, known_refs='__known_refs__', out_format='table') -%}
 {%- set private_exceptions = get_members(typ='exception', in_list='__private__', out_format='table') -%}
 {%- set private_classes = get_members(typ='class', in_list='__private__', out_format='table') -%}
 {%- set private_functions = get_members(typ='function', in_list='__private__', out_format='table') -%}

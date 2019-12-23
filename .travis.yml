@@ -1,21 +1,24 @@
-# Config file for automatic testing at travis-ci.org
 dist: xenial
-language: python
-python:
-  # We don't actually use the Travis Python, but this keeps it organized.
-  - 3.7
+language: generic
 install:
-  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda3.sh;
-  - bash miniconda3.sh -b -p $HOME/miniconda3
-  - source $HOME/miniconda3/etc/profile.d/conda.sh
-  - conda activate
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda create -q -n test_env python=$TRAVIS_PYTHON_VERSION pandoc
-  - conda activate test_env
-  - pip install flake8 pep8 twine
-  - pip freeze
-
-script:
   - set -e
-  - make test
+  - cd /opt/pyenv/ && git fetch && git merge origin/master && cd -
+  - pyenv install --list
+  - pyenv install --skip-existing 3.5.7
+  - pyenv install --skip-existing 3.8.1
+  - pyenv global 3.5.7 3.6.7 3.7 3.8.1
+  - pyenv versions
+  - export PATH=/tmp/texlive/bin/x86_64-linux:$PATH
+  - travis_wait source .travis/texlive/texlive_install.sh
+  - python3.7 -m pip install pytest-cookies ipython pdbpp black isort pre-commit flake8 pylint pep8 twine click gitpython doctr tox
+  - python3.7 -m pip freeze
+addons:
+  apt_packages:
+    - pandoc
+cache:
+  directories:
+    - /tmp/texlive
+    - $HOME/.texlive
+    - /opt/pyenv
+script:
+  - python3.7 -m pytest -v -x -s tests

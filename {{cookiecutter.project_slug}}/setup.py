@@ -32,15 +32,28 @@ dev_requirements = [
 {%- if cookiecutter.better_apidoc == 'y' %}
     'better-apidoc',
 {%- endif %}
-    'coverage',
+    'coverage<5.0',  # 5.0 breaks a lot of other packages:
+    # https://github.com/computationalmodelling/nbval/issues/129
+    # https://github.com/codecov/codecov-python/issues/224
+{%- if cookiecutter.coverage == 'coveralls' %}
+    'coveralls',
+{%- endif %}
+{%- if cookiecutter.coverage == 'codecov' %}
+    'codecov',
+{%- endif %}
+{%- if cookiecutter.docshosting == 'Doctr' %}
+    'doctr',
+{%- endif %}
     'flake8',
     'gitpython',
 {%- if cookiecutter.use_isort == 'y' %}
     'isort',
 {%- endif %}
+    'ipython',
 {%- if cookiecutter.use_pre_commit == 'y' %}
     'pre-commit',
 {%- endif %}
+    'pdbpp',
     'pylint',
     'pytest',
     'pytest-cov',
@@ -49,6 +62,9 @@ dev_requirements = [
     'sphinx-autobuild',
     'sphinx-autodoc-typehints',
     'sphinx_rtd_theme',
+{%- if cookiecutter.travisci == 'y' %}
+    'travis-encrypt',
+{%- endif %}
     'twine',
     'wheel',
 {%- if cookiecutter.use_notebooks == 'y' %}
@@ -84,9 +100,6 @@ setup(
         '{{ license_classifiers[cookiecutter.open_source_license] }}',
 {%- endif %}
         'Natural Language :: English',
-{%- if cookiecutter.support_py34 == 'y' %}
-        'Programming Language :: Python :: 3.4',
-{%- endif %}
 {%- if cookiecutter.support_py35 == 'y' %}
         'Programming Language :: Python :: 3.5',
 {%- endif %}
@@ -96,12 +109,18 @@ setup(
 {%- if cookiecutter.support_py37 == 'y' %}
         'Programming Language :: Python :: 3.7',
 {%- endif %}
+{%- if cookiecutter.support_py38 == 'y' %}
+        'Programming Language :: Python :: 3.8',
+{%- endif %}
+{%- if cookiecutter.support_py38 == 'y' %}
+        'Programming Language :: Python :: 3.9',
+{%- endif %}
         'Natural Language :: English',
     ],
     description=(
         "{{ cookiecutter.project_short_description }}"
     ),
-    python_requires='>={%if cookiecutter.support_py34 == 'y' %}3.4{% elif cookiecutter.support_py35 == 'y' %}3.5{% elif cookiecutter.support_py36 == 'y' %}3.6{% elif cookiecutter.support_py37 == 'y' %}3.7{% else %}3{% endif %}',
+    python_requires='>={% if cookiecutter.support_py35 == 'y' %}3.5{% elif cookiecutter.support_py36 == 'y' %}3.6{% elif cookiecutter.support_py37 == 'y' %}3.7{% elif cookiecutter.support_py38 == 'y' %}3.8{% elif cookiecutter.support_py39 == 'y' %}3.9{% else %}3{% endif %}',
     install_requires=requirements,
     extras_require={'dev': dev_requirements},
 {%- if cookiecutter.open_source_license in license_classifiers %}

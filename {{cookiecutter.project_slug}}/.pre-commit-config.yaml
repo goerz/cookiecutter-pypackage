@@ -3,21 +3,19 @@ fail_fast: false
 repos:
 -   repo: local
     hooks:
-    -   id: krotov-pre-commit
-        name: Local pre-commit (./scripts/pre-commit.py)
-        entry: ./scripts/pre-commit.py
+    -   id: whitespace
+        name: whitespace
+        entry: ./scripts/pre-commit.py whitespace
+        language: script
+    -   id: debug-comments
+        name: debug-comments
+        entry: ./scripts/pre-commit.py debug-comments
+        types: [python]
         language: script
 {%- if cookiecutter.use_black == 'y' %}
 -   repo: https://github.com/ambv/black
-    rev: 19.3b0
+    rev: 19.10b0
     hooks:
     - id: black
       args: ['--skip-string-normalization', '--line-length', '79', '--check']
-{%- endif %}
-{%- if cookiecutter.use_isort == 'y' %}
--   repo: https://github.com/pre-commit/mirrors-isort
-    rev: v4.3.17
-    hooks:
-    - id: isort
-      args: ['--check-only']
 {%- endif %}

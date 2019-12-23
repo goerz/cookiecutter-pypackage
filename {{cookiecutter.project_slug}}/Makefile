@@ -1,235 +1,155 @@
-.PHONY: help clean clean-build clean-pyc clean-test clean-venvs lint test flake8-check pylint-check {%- if cookiecutter.sphinx_docs == 'y' %} docs{% endif %} spellcheck {%- if cookiecutter.use_black == 'y' %} black-check black{% endif %} {%- if cookiecutter.use_isort == 'y' %} isort-check isort{% endif %} coverage test-upload upload  {%- if cookiecutter.use_pre_commit == 'y' %} pre-commit-hooks {% endif %} release dist dist-check install uninstall develop develop-test develop-docs {%- if cookiecutter.use_notebooks == 'y' %} notebooks jupyter-notebook jupyter-lab{% endif %}
+.PHONY: help clean clean-build clean-pyc clean-test clean-venv flake8-check pylint-check test test35 test36 test37 test38 {%- if cookiecutter.sphinx_docs == 'y' %} docs docs-pdf clean-docs{% endif %} {%- if cookiecutter.use_black == 'y' %} black-check black{% endif %} {%- if cookiecutter.use_isort == 'y' %} isort-check isort{% endif %} coverage {%- if cookiecutter.on_pypi == 'y' %} test-upload upload release{% endif %} dist dist-check {%- if cookiecutter.use_notebooks == 'y' %} notebooks jupyter-notebook jupyter-lab{% endif %}
+	
 .DEFAULT_GOAL := help
 
-{%- if cookiecutter.environment_manager == 'conda' %}
-CONDA_PACKAGES = {{ cookiecutter.conda_packages }}
-{%- endif %}
-TESTENV =
-#TESTENV = MATPLOTLIBRC=tests
-TESTOPTIONS = --doctest-modules --cov={{ cookiecutter.project_slug }}{% if cookiecutter.sphinx_docs == 'y' %}{% if cookiecutter.use_notebooks == 'y' %} --nbval --sanitize-with docs/nbval_sanitize.cfg{% endif %}{% endif %}
-TESTS = src tests{% if cookiecutter.sphinx_docs == 'y' %} docs/*.rst{% if cookiecutter.use_notebooks == 'y' %} docs/*.ipynb{% endif %}{% endif %}
-{% if cookiecutter.use_black == 'y' %}
-BLACKOPTIONS = {% if cookiecutter.allow_single_quote_strings == 'y' %}--skip-string-normalization {% endif %}--line-length {{ cookiecutter.linelength }}
-{%- endif %}
-{%-if cookiecutter.support_py37 == 'y' %}
-LATESTVENV = .venv/py37
-  {%- set latest_venv = '.venv/py37' -%}
-  {%- set latest_test_target = 'test37' -%}
-{%elif cookiecutter.support_py36 == 'y' %}
-LATESTVENV = .venv/py36
-  {%- set latest_venv = '.venv/py36' -%}
-  {%- set latest_test_target = 'test36' -%}
-{% elif cookiecutter.support_py35 == 'y' %}
-LATESTVENV = .venv/py35
-  {%- set latest_venv = '.venv/py35' -%}
-  {%- set latest_test_target = 'test35' -%}
-{% else %}
-LATESTVENV = .venv/py34
-  {%- set latest_venv = '.venv/py34' -%}
-  {%- set latest_test_target = 'test34' -%}
-{% endif %}
+TOXOPTIONS ?=
+TOXINI ?= tox.ini
+TOX = tox -c $(TOXINI) $(TOXOPTIONS)
+
+# empty TESTS delegates to TOXINI
+TESTS ?=
 
 define PRINT_HELP_PYSCRIPT
 import re, sys
 
 for line in sys.stdin:
-	match = re.match(r'^([a-z0-9A-Z_-]+):.*?## (.*)$$', line)
-	if match:
-		target, help = match.groups()
-		print("%-20s %s" % (target, help))
+    match = re.match(r'^([a-z0-9A-Z_-]+):.*?## (.*)$$', line)
+    if match:
+        target, help = match.groups()
+        print("%-20s %s" % (target, help))
 endef
 export PRINT_HELP_PYSCRIPT
 
 help:  ## show this help
 	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
-clean: clean-build clean-pyc clean-test clean-venvs ## remove all build, test, coverage, and Python artifacts, as well as environments
-	{% if cookiecutter.sphinx_docs == 'y' %}$(MAKE) -C docs clean{% else %}@echo "Done cleaning"{% endif %}
+bootstrap: ## verify that tox is available and pre-commit hooks are active
+	python scripts/bootstrap.py
+
+clean: ## remove all build, {%- if cookiecutter.sphinx_docs == 'y' %} docs,{% endif %} test, and coverage artifacts, as well as tox environments
+	python scripts/clean.py all
 
 clean-build: ## remove build artifacts
-	rm -fr build/
-	rm -fr dist/
-	rm -fr .eggs/
-	rm -fr src/*.egg-info
-	rm -fr pip-wheel-metadata/
-	find tests src -name '*.egg-info' -exec rm -fr {} +
-	find tests src -name '*.egg' -exec rm -f {} +
+	python scripts/clean.py build
 
-clean-pyc: ## remove Python file artifacts
-	find tests src -name '*.pyc' -exec rm -f {} +
-	find tests src -name '*.pyo' -exec rm -f {} +
-	find tests src -name '*~' -exec rm -f {} +
-	find tests src -name '__pycache__' -exec rm -fr {} +
+clean-tests: ## remove test and coverage artifacts
+	python scripts/clean.py tests
 
-clean-test: ## remove test and coverage artifacts
-	rm -f .coverage
-	rm -fr htmlcov/
+clean-venv: ## remove tox virtual environments
+	python scripts/clean.py venv
 
-clean-venvs: ## remove testing/build environments
-	rm -fr .tox
-	rm -fr .venv
+{%- if cookiecutter.sphinx_docs == 'y' %}
 
-flake8-check: $(LATESTVENV)/bin/python ## check style with flake8
-	$(LATESTVENV)/bin/python -m flake8 src tests
+clean-docs: ## remove documentation artifacts
+	python scripts/clean.py docs
 
-pylint-check: $(LATESTVENV)/bin/python ## check style with pylint
-	$(LATESTVENV)/bin/python -m pylint -j 0 src
-
-{% if cookiecutter.environment_manager == 'conda' %}
-test: {%-if cookiecutter.support_py34 == 'y' %} test34{% endif %} {%- if cookiecutter.support_py35 == 'y' %} test35{% endif %} {%- if cookiecutter.support_py36 == 'y' %} test36{% endif %} {%- if cookiecutter.support_py37 == 'y' %} test37{% endif %} ## run tests on every supported Python version
-
-.venv/py34/bin/py.test:
-	@conda create -y -m -p .venv/py34 python=3.4 $(CONDA_PACKAGES)
-	@PIP_USE_PEP517=false .venv/py34/bin/python -m pip install -e .[dev]
-{%- if cookiecutter.use_pre_commit == 'y' and latest_venv == '.venv/py34' %}
-	@{{ latest_venv }}/bin/python scripts/install-pre-commit.py
 {%- endif %}
 
-test34: .venv/py34/bin/py.test ## run tests for Python 3.4
-	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
+flake8-check: bootstrap ## check style with flake8
+	$(TOX) -e run-flake8
 
-.venv/py35/bin/py.test:
-	@conda create -y -m -p .venv/py35 python=3.5 $(CONDA_PACKAGES)
-	@PIP_USE_PEP517=false .venv/py35/bin/python -m pip install -e .[dev]
-{%- if cookiecutter.use_pre_commit == 'y' and latest_venv == '.venv/py35' %}
-	@{{ latest_venv }}/bin/python scripts/install-pre-commit.py
-{%- endif %}
+pylint-check: bootstrap ## check style with pylint
+	$(TOX) -e run-pylint
 
-test35: .venv/py35/bin/py.test ## run tests for Python 3.5
-	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
+{% set testenvs = [] %}
+{%- if cookiecutter.support_py35 == "y" and testenvs.append("py35-test") %}{% endif %}
+{%- if cookiecutter.support_py36 == "y" and testenvs.append("py36-test") %}{% endif %}
+{%- if cookiecutter.support_py37 == "y" and testenvs.append("py37-test") %}{% endif %}
+{%- if cookiecutter.support_py38 == "y" and testenvs.append("py38-test") %}{% endif %}
+{%- if cookiecutter.support_py39 == "y" and testenvs.append("py39-test") %}{% endif %}
+test: bootstrap ## run tests for all supported Python versions
+	$(TOX) -e {{ testenvs | join(",") }} -- $(TESTS)
 
-.venv/py36/bin/py.test:
-	@conda create -y -m -p .venv/py36 python=3.6 $(CONDA_PACKAGES)
-	@PIP_USE_PEP517=false .venv/py36/bin/python -m pip install -e .[dev]
-{%- if cookiecutter.use_pre_commit == 'y' and latest_venv == '.venv/py36' %}
-	@{{ latest_venv }}/bin/python scripts/install-pre-commit.py
-{%- endif %}
+test35: bootstrap ## run tests for Python 3.5
+	$(TOX) -e py35-test -- $(TESTS)
 
-test36: .venv/py36/bin/py.test{% if latest_test_target == 'test36' %}{% if cookiecutter.use_isort == 'y' %} isort-check{% endif %}{% if cookiecutter.use_black == 'y' %} black-check{% endif %}{% endif %} ## run tests for Python 3.6
-	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
+test36: bootstrap ## run tests for Python 3.6
+	$(TOX) -e py36-test -- $(TESTS)
 
-.venv/py37/bin/py.test:
-	@conda create -y -m -p .venv/py37 python=3.7 $(CONDA_PACKAGES)
-	@PIP_USE_PEP517=false .venv/py37/bin/python -m pip install -e .[dev]
-{%- if cookiecutter.use_pre_commit == 'y' and latest_venv == '.venv/py37' %}
-	@{{ latest_venv }}/bin/python scripts/install-pre-commit.py
-{%- endif %}
+test37: bootstrap ## run tests for Python 3.7
+	$(TOX) -e py37-test -- $(TESTS)
 
-test37: .venv/py37/bin/py.test {% if latest_test_target == 'test37' %}{% if cookiecutter.use_isort == 'y' %} isort-check{% endif %}{% if cookiecutter.use_black == 'y' %} black-check{% endif %}{% endif %} ## run tests for Python 3.7
-	$(TESTENV) $< -v $(TESTOPTIONS) $(TESTS)
+test38: bootstrap ## run tests for Python 3.8
+	$(TOX) -e py38-test -- $(TESTS)
 
-$(LATESTVENV)/bin/python: $(LATESTVENV)/bin/py.test
+test39: bootstrap ## run tests for Python 3.9
+	$(TOX) -e py39-test -- $(TESTS)
 
+{%- if cookiecutter.sphinx_docs == 'y' %}
 
-{%- if cookiecutter.use_pre_commit == 'y' %}
-pre-commit-hooks: $(LATESTVENV)/bin/py.test  ## install pre-commit hooks
-{%- endif %}
-
-{% if cookiecutter.sphinx_docs == 'y' %}
-$(LATESTVENV)/bin/sphinx-build: $(LATESTVENV)/bin/py.test
-
-docs: $(LATESTVENV)/bin/sphinx-build ## generate Sphinx HTML documentation, including API docs
-	$(MAKE) -C docs SPHINXBUILD=../$(LATESTVENV)/bin/sphinx-build clean
-{%- if cookiecutter.better_apidoc == 'n' %}
-	@./$(LATESTVENV)/bin/sphinx-apidoc --separate -o docs/API/ src/{{ cookiecutter.project_slug }}
-	@rm -f docs/API/modules.rst
-{%-endif %}
-	$(MAKE) -C docs SPHINXBUILD=../$(LATESTVENV)/bin/sphinx-build html
+docs: bootstrap ## generate Sphinx HTML documentation, including API docs
+	$(TOX) -e docs
 	@echo "open docs/_build/html/index.html"
 
-spellcheck: $(LATESTVENV)/bin/sphinx-build ## check spelling in docs
-	@$(LATESTVENV)/bin/python -m pip install sphinxcontrib-spelling
-	SPELLCHECK=en_US $(MAKE) -C docs SPHINXBUILD=../$(LATESTVENV)/bin/sphinx-build spelling
+docs-pdf: bootstrap ## generate Sphinx PDF documentation, via latex
+	$(TOX) -e docs -- -b latex _build/latex
+	$(TOX) -e run-cmd -- python docs/build_pdf.py docs/_build/latex/*.tex
 
-{%-endif -%}
-{%endif %}
+{%- endif %}
 
-{% if cookiecutter.use_black == 'y' %}
-black-check: $(LATESTVENV)/bin/python  ## Check all src and test files for compliance to 'black' code style
-	$(LATESTVENV)/bin/black $(BLACKOPTIONS) --diff --check src tests
+{%- if cookiecutter.use_black == 'y' %}
 
-black: $(LATESTVENV)/bin/python  ## Apply 'black' code style to all src and test files
-	$(LATESTVENV)/bin/black $(BLACKOPTIONS) src tests
+black-check: bootstrap ## Check all src and test files for complience to "black" code style
+	$(TOX) -e run-blackcheck
 
-{% endif %}
-{% if cookiecutter.use_isort == 'y' %}
-isort-check: $(LATESTVENV)/bin/python  ## Check all src and test files for correctly sorted imports
-	$(LATESTVENV)/bin/isort --recursive --check-only src tests
+black: bootstrap ## Apply 'black' code style to all src and test files
+	$(TOX) -e run-black
 
-isort: $(LATESTVENV)/bin/python  ## Sort imports in all src and test files
-	$(LATESTVENV)/bin/isort --recursive src tests
+{%- endif %}
 
-{% endif %}
-coverage: {{ latest_test_target }}  ## generate coverage report in ./htmlcov
-	$(LATESTVENV)/bin/coverage html
+{%- if cookiecutter.use_isort == 'y' %}
+
+isort-check: bootstrap ## Check all src and test files for correctly sorted imports
+	$(TOX) -e run-isortcheck
+
+isort: bootstrap ## Sort imports in all src and test files
+	$(TOX) -e run-isort
+
+{%- endif %}
+
+coverage: test37  ## generate coverage report in ./htmlcov
+	$(TOX) -e coverage
 	@echo "open htmlcov/index.html"
 
-test-upload: $(LATESTVENV)/bin/python clean-build clean-pyc dist ## package and upload a release to test.pypi.org
-	$(LATESTVENV)/bin/twine check dist/*
-	$(LATESTVENV)/bin/twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+{%- if cookiecutter.on_pypi == 'y' %}
 
-{% if cookiecutter.on_pypi == 'y' %}
-upload: $(LATESTVENV)/bin/python clean-build clean-pyc dist ## package and upload a release to pypi.org
-	$(LATESTVENV)/bin/twine check dist/*
-	$(LATESTVENV)/bin/twine upload dist/*
+test-upload: bootstrap clean-build dist ## package and upload a release to test.pypi.org
+	$(TOX) -e run-cmd -- twine check dist/*
+	$(TOX) -e run-cmd -- twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
-{% if cookiecutter.use_git_flow == 'n' %}
-release: clean $(LATESTVENV)/bin/python ## Create a new version, package and upload it
-	$(LATESTVENV)/bin/python ./scripts/release.py
-{%endif %}
-{%endif %}
+upload: bootstrap clean-build dist ## package and upload a release to pypi.org
+	$(TOX) -e run-cmd -- twine check dist/*
+	$(TOX) -e run-cmd -- twine upload dist/*
 
-dist: $(LATESTVENV)/bin/python clean-build clean-pyc ## builds source and wheel package
-	@$< setup.py sdist
-	@$< setup.py bdist_wheel
+release: bootstrap ## Create a new version, package and upload it
+	python{{ cookiecutter.main_python }} -m venv .venv/release
+	.venv/release/bin/python -m pip install click gitpython pytest
+	.venv/release/bin/python ./scripts/release.py
+
+{%- endif %}
+
+dist: bootstrap ## builds source and wheel package
+	$(TOX) -e run-cmd -- python setup.py sdist
+	$(TOX) -e run-cmd -- python setup.py bdist_wheel
 	ls -l dist
 
-dist-check: $(LATESTVENV)/bin/python  ## Check all dist files for correctness
-	$(LATESTVENV)/bin/twine check dist/*
-
-install: clean-build clean-pyc ## install the package to the active Python's site-packages
-	pip install .
-
-uninstall:  ## uninstall the package from the active Python's site-packages
-	pip uninstall {{ cookiecutter.project_slug }}
-
-develop: clean-build clean-pyc ## install the package to the active Python's site-packages, in develop mode
-	PIP_USE_PEP517=false pip install -e .[dev]
-
-develop-test: develop ## run tests within the active Python environment
-	$(TESTENV) py.test -v $(TESTOPTIONS) $(TESTS)
-
-{% if cookiecutter.sphinx_docs == 'y' %}
-develop-docs: develop  ## generate Sphinx HTML documentation, including API docs, within the active Python environment
-	$(MAKE) -C docs clean
-{%- if cookiecutter.better_apidoc == 'n' %}
-	@sphinx-apidoc --separate -o docs/API/ src/{{ cookiecutter.project_slug }}
-	@rm -f docs/API/modules.rst
-{%-endif %}
-	$(MAKE) -C docs html
-	@echo "open docs/_build/html/index.html"
-
-{%- if cookiecutter.use_notebooks == 'y' %}
-$(LATESTVENV)/bin/jupyter: $(LATESTVENV)/bin/py.test
+dist-check: bootstrap ## Check all dist files for correctness
+	$(TOX) -e run-cmd -- twine check dist/*
 
 # How to execute notebook files
-%.ipynb.log: %.ipynb $(LATESTVENV)/bin/jupyter
+%.ipynb.log: %.ipynb
 	@echo ""
-	@$(LATESTVENV)/bin/jupyter nbconvert --to notebook --execute --inplace --allow-errors --ExecutePreprocessor.kernel_name='python3' --config=/dev/null $< 2>&1 | tee $@
+	$(TOX) -e run-cmd -- jupyter nbconvert --to notebook --execute --inplace --allow-errors --ExecutePreprocessor.kernel_name='python3'  --ExecutePreprocessor.timeout=-1 --config=/dev/null $< 2>&1 | tee $@
 
-NOTEBOOKFILES = $(shell find docs/ -iname '*.ipynb'  -maxdepth 1)
-NOTEBOOKLOGS = $(patsubst %.ipynb,%.ipynb.log,$(NOTEBOOKFILES))
+{%- if cookiecutter.use_notebooks == 'y' %}
 
-notebooks: $(NOTEBOOKLOGS)  ## re-evaluate the notebooks
-	@echo ""
-	@echo "All notebook are now up to date; the were executed using the python3 kernel"
-	@$(LATESTVENV)/bin/jupyter kernelspec list | grep python3
+notebooks: docs/tutorial.ipynb.log
 
-jupyter-notebook: $(LATESTVENV)/bin/jupyter  ## run a notebook server for editing the examples
-	$(LATESTVENV)/bin/jupyter notebook --config=/dev/null
+jupyter-notebook: bootstrap ## run a notebook server for editing the examples
+	$(TOX) -e run-cmd -- jupyter notebook --config=/dev/null
 
-jupyter-lab: $(LATESTVENV)/bin/jupyter  ## run a jupyterlab server for editing the examples
-	@$(LATESTVENV)/bin/python -m pip install jupyterlab
-	$(LATESTVENV)/bin/jupyter lab --config=/dev/null
-{%-endif %}
-{%-endif %}
+jupyter-lab: bootstrap ## run a jupyterlab server for editing the examples
+	$(TOX) -e run-cmd -- pip install jupyterlab
+	$(TOX) -e run-cmd -- jupyter lab --config=/dev/null
+
+{%- endif %}

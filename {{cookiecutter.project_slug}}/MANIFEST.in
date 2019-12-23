@@ -1,7 +1,7 @@
 graft src
-{% if cookiecutter.create_author_file == 'y' -%}
+{%- if cookiecutter.create_author_file == 'y' %}
 include AUTHORS.rst
-{% endif -%}
+{%- endif %}
 include CONTRIBUTING.rst
 include HISTORY.rst
 include LICENSE

@@ -1,56 +1,137 @@
 # Config file for automatic testing at travis-ci.org
 dist: xenial
 language: python
-python:
-{%- if cookiecutter.support_py37 == 'y' %}
-  - 3.7
-{%- endif %}
-{%- if cookiecutter.support_py36 == 'y' %}
-  - 3.6
-{%- endif %}
-{%- if cookiecutter.support_py35 == 'y' %}
-  - 3.5
-{%- endif %}
-{%- if cookiecutter.support_py34 == 'y' %}
-  - 3.4
-{%- endif %}
+env:
+  global:
+    {%- if cookiecutter.coverage == 'coveralls' %}
+    - COVERALLS_PARALLEL=true
+    {%- endif %}
+matrix:
+  fast_finish: true
+  include:
+    {%- if cookiecutter.use_isort == 'y' or cookiecutter.use_black == 'y' %}
+    - name: Check code style
+      python: {{ cookiecutter.main_python }}
+      {%- if cookiecutter.use_isort == 'y' and cookiecutter.use_black == 'y' %}
+      env: TOXENV="run-blackcheck,run-isortcheck"
+      {%- elif cookiecutter.use_isort == 'y' %}
+      env: TOXENV="run-isortcheck"
+      {%- elif cookiecutter.use_black == 'y' %}
+      env: TOXENV="run-blackcheck"
+      {%- endif %}
+    {%- endif %}
+    {%- if cookiecutter.sphinx_docs == 'y' %}
+    - name: Docs
+      python: {{ cookiecutter.main_python }}
+      env:
+        - DOCS="true"
+        {%- if cookiecutter.docshosting == 'Doctr' %}
+        # TODO: Doctr deploy key
+        #       * Run `tox -e run-cmd -- doctr configure --no-upload-key --no-authenticate --keypath docs/doctr_deploy_key`
+        #       * Follow doctr's instructions regarding setting up the deploy key on Github
+        #       * Replace the "secure: ..." line below with the "secure" line printed by doctr
+        # - secure: ...
+          {%- if cookiecutter.doctr_artifact_hosting == 'gh-releases' %}
+        # TODO: Encrypted GITHUB_TOKEN for deployment of documentation artifacts to Github Releases
+        #       * Generate an access token, see https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line
+        #       * run `tox -e run-travis-encrypt`
+        #       * paste in e.g. "GITHUB_TOKEN=4cef449e1762da64012e8f3250cf002524e14cd1" when prompted for "Password"
+        #       * replace the "secure: ..." information below with the "secure" information printed by travis-encrypt
+        # # GITHUB_TOKEN
+        # - secure: ...
+          {%- endif %}
+          {%- if cookiecutter.doctr_artifact_hosting == 'bintray' %}
+        # TODO: Environment variables for deployment of documentation artifacts to Bintray
+        #       * Set up a Bintray repo and package (preferably mirroring the username/repo name on Github
+        #       * Uncomment lines and set values for:
+        #           * BINTRAY_USER - The username for the Bintray account
+        #           * BINTRAY_SUBJECT - The "subject" (user name or organization name) hosting the package
+        #           * BINTRAY_REPO - The "repo" on Bintray (should match the git repo name)
+        #           * BINTRAY_PACKAGE - The "package" on Bintray (should also match the git repo name)
+        #       * run `tox -e run-travis-encrypt`
+        #       * paste in e.g. "BINTRAY_TOKEN=0a23802f7c9907f9087e37f21346a3a2805feb1a" when prompted for "Password"
+        #       * replace the "secure: ..." information below with the "secure" information printed by travis-encrypt
+        # - BINTRAY_USER={{ cookiecutter.github_username }}
+        # - BINTRAY_SUBJECT={{ cookiecutter.github_username }}
+        # - BINTRAY_REPO={{ cookiecutter.project_slug }}
+        # - BINTRAY_PACKAGE={{ cookiecutter.project_slug }}
+        # # BINTRAY_TOKEN
+        # - secure: ...
+          {%- endif %}
+        {%- endif %}
+      addons:
+        apt_packages:
+          {%- if cookiecutter.use_notebooks == 'y' %}
+          - pandoc
+          {%- endif %}
+    {%- endif %}
+    {%- if cookiecutter.support_py35 == 'y' %}
+    - name: Python 3.5
+      python: 3.5
+      env: TOXENV=py35-test
+    {%- endif %}
+    {%- if cookiecutter.support_py36 == 'y' %}
+    - name: Python 3.6
+      python: 3.6
+      env: TOXENV=py36-test
+    {%- endif %}
+    {%- if cookiecutter.support_py37 == 'y' %}
+    - name: Python 3.7
+      python: 3.7
+      env: TOXENV=py37-test
+    {%- endif %}
+    {%- if cookiecutter.support_py38 == 'y' %}
+    - name: Python 3.8
+      python: 3.8
+      env: TOXENV=py38-test
+    {%- endif %}
+    {%- if cookiecutter.support_py39 == 'y' %}
+    - name: Python 3.9
+      python: 3.9
+      env: TOXENV=py39-test
+    {%- endif %}
 
-{%- if cookiecutter.environment_manager == 'conda' %}
 install:
   # any failure stops the build
   - set -e
-  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-  - bash miniconda.sh -b -p $HOME/miniconda3
-  - source $HOME/miniconda3/etc/profile.d/conda.sh
-  - conda activate
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda create -q -n test_env python=$TRAVIS_PYTHON_VERSION {{ cookiecutter.conda_packages }}
-  - conda activate test_env
-  - conda config --append channels conda-forge
-{%- if cookiecutter.coveralls == 'y' %}
-  # we must use an editable install, otherwise coveralls won't work
-{%- endif %}
-  - PIP_USE_PEP517=false pip install -e .[dev]
+  {%- if cookiecutter.travis_texlive == 'y' %}
+  - export PATH=/tmp/texlive/bin/x86_64-linux:$PATH
+  - travis_wait source .travis/texlive/texlive_install.sh
+  {%- endif %}
+  - pip install tox
   - pip freeze
-{%- if cookiecutter.coveralls == 'y' %}
-  - pip install coveralls
+  - printenv
+{%- if cookiecutter.travis_texlive == 'y' %}
+cache:
+  directories:
+    - /tmp/texlive
+    - $HOME/.texlive
 {%- endif %}
-  - pip freeze
-
 script:
   # any failure stops testing immediately
   - set -e
-{% if cookiecutter.use_isort == 'y' %}
-  - if [[ $TRAVIS_PYTHON_VERSION == {% if cookiecutter.support_py37 == 'y' %}'3.7'{% else %}'3.6'{% endif %} ]]; then isort --recursive --check-only src tests; fi
-{% endif %}
-{% if cookiecutter.use_black == 'y' %}
-  - if [[ $TRAVIS_PYTHON_VERSION == {% if cookiecutter.support_py37 == 'y' %}'3.7'{% else %}'3.6'{% endif %} ]]; then black {% if cookiecutter.allow_single_quote_strings == 'y' %}--skip-string-normalization {% endif %}--line-length {{ cookiecutter.linelength }} --check src tests; fi
-{% endif %}
-  - pytest --doctest-modules --cov={{ cookiecutter.project_slug }} {%- if cookiecutter.use_notebooks == 'y' %} --nbval --sanitize-with docs/nbval_sanitize.cfg{% endif %} src tests docs/*.rst {%- if cookiecutter.use_notebooks == 'y' %} docs/*.ipynb{% endif %}
-{%- endif %}
+  - |
+    if [[ "${DOCS}" == "true" ]]; then
+      {%- if cookiecutter.docshosting == 'Doctr' %}
+      source .travis/doctr_build.sh
+      {%- else %}
+      tox -e docs
+      {%- endif %}
+    else
+      tox -e $TOXENV
+    fi
+  - echo "DONE"
 
-{%- if cookiecutter.coveralls == 'y' %}
+{%- if cookiecutter.coverage != 'None' %}
 after_success:
-  - coveralls
+  {%- if cookiecutter.coverage == 'coveralls' %}
+  # coveralls is prone to random failures (which would fail the Travis job), so we'll handle those silently
+  - if [[ "${TOXENV}" =~ test ]]; then tox -e $(echo "${TOXENV}" | sed s/test/runcmd/) -- coveralls -v || echo "Cannot upload to coveralls"; fi
+  {%- elif cookiecutter.coverage == 'codecov' %}
+  - if [[ "${TOXENV}" =~ test ]]; then tox -e $(echo "${TOXENV}" | sed s/test/runcmd/) -- codecov; fi
+  {%- endif %}
+{%- endif %}
+{%- if cookiecutter.coverage == 'coveralls' %}
+notifications:
+  webhooks: https://coveralls.io/webhook
 {%- endif %}

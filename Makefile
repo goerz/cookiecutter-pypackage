@@ -19,7 +19,7 @@ help:  ## show this help
 
 .venv/bin/cookiecutter:
 	python -m venv .venv
-	.venv/bin/pip install pytest-cookies ipython pdbpp black isort pre-commit flake8 pylint pep8 twine click gitpython
+	.venv/bin/pip install pytest-cookies ipython pdbpp black isort pre-commit flake8 pylint pep8 twine click gitpython doctr tox
 
 
 clean:  ## remove testing artifacts
@@ -27,4 +27,4 @@ clean:  ## remove testing artifacts
 
 
 test: .venv/bin/cookiecutter  ## run tests
-	PATH=$(shell pwd)/.venv/bin:$(PATH) pytest $(TESTOPTIONS) -v tests
+	PATH=$(shell pwd)/.venv/bin:$(PATH) pytest $(TESTOPTIONS) tests

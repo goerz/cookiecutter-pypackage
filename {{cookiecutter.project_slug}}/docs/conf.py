@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
+from pathlib import Path
 import os
 import sys
 
@@ -7,30 +8,32 @@ import git
 
 import {{ cookiecutter.project_slug }}
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
+
+DOCS = Path(__file__).parent
+ROOT = DOCS / '..'
+
 sys.path.insert(0, os.path.abspath('_extensions'))
 
 # -- Generate API documentation ------------------------------------------------
 
 
 {%- if cookiecutter.better_apidoc == 'y' %}
-def run_apidoc(_):
+def run_apidoc(app):
     """Generage API documentation"""
     import better_apidoc
 
+    better_apidoc.APP = app
     better_apidoc.main(
         [
             'better-apidoc',
             '-t',
-            os.path.join('.', '_templates'),
+            str(DOCS / '_templates'),
             '--force',
             '--no-toc',
             '--separate',
             '-o',
-            os.path.join('.', 'API'),
-            os.path.join('..', 'src', '{{ cookiecutter.project_slug }}'),
+            str(DOCS / 'API'),
+            os.path.join(DOCS / '..' / 'src' / '{{ cookiecutter.project_slug }}'),
         ]
     )
 {%- endif %}
@@ -70,7 +73,7 @@ if os.getenv('SPELLCHECK'):
     spelling_ignore_pypi_package_names = True
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/{% if cookiecutter.support_py37 == 'y' %}3.7{% elif cookiecutter.support_py36 == 'y' %}3.6{% elif cookiecutter.support_py35 == 'y' %}3.5{% elif cookiecutter.support_py34 == 'y' %}3.4{% else %}3.7{% endif %}', None),
+    'python': ('https://docs.python.org/{{ cookiecutter.main_python }}', None),
     'sympy': ('https://docs.sympy.org/latest/', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
     'numpy': ('https://docs.scipy.org/doc/numpy/', None),
@@ -87,12 +90,15 @@ year = str(datetime.datetime.now().year)
 author = {{ '{0!r}'.format(cookiecutter.full_name) }}
 copyright = '{0}, {1}'.format(year, author)
 version = {{ cookiecutter.project_slug }}.__version__
-rootfolder = os.path.join(os.path.dirname(__file__), '..')
-try:
-    last_commit = str(git.Repo(rootfolder).head.commit)[:7]
-    release = last_commit
-except (git.exc.InvalidGitRepositoryError, ValueError):
-    release = version
+release = version
+git_tag = "v%s" % version
+if version.endswith('dev'):
+    try:
+        last_commit = str(git.Repo(ROOT).head.commit)[:7]
+        release = "%s (%s)" % (version, last_commit)
+        git_tag = str(git.Repo(ROOT).head.commit)
+    except git.exc.InvalidGitRepositoryError:
+        git_tag = "master"
 numfig = True
 
 pygments_style = 'friendly'
@@ -114,52 +120,15 @@ html_short_title = '%s-%s' % (project, version)
 
 {% raw %}
 # Mathjax settings
-mathjax_path = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js'
+mathjax_path = (
+    'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.6/MathJax.js'
+)
 mathjax_config = {
     'extensions': ['tex2jax.js'],
     'jax': ['input/TeX', 'output/SVG'],
     'TeX': {
-        'extensions': [
-            "AMSmath.js",
-            "AMSsymbols.js",
-            "noErrors.js",
-            "noUndefined.js",
-        ],
+        'extensions': ["AMSmath.js", "AMSsymbols.js"],
         'Macros': {
-            'tr': ['{\\operatorname{tr}}', 0],
-            'diag': ['{\\operatorname{diag}}', 0],
-            'abs': ['{\\operatorname{abs}}', 0],
-            'pop': ['{\\operatorname{pop}}', 0],
-            'ee': ['{\\text{e}}', 0],
-            'ii': ['{\\text{i}}', 0],
-            'aux': ['{\\text{aux}}', 0],
-            'opt': ['{\\text{opt}}', 0],
-            'tgt': ['{\\text{tgt}}', 0],
-            'init': ['{\\text{init}}', 0],
-            'lab': ['{\\text{lab}}', 0],
-            'rwa': ['{\\text{rwa}}', 0],
-            'bra': ['{\\langle#1\\vert}', 1],
-            'ket': ['{\\vert#1\\rangle}', 1],
-            'Bra': ['{\\left\\langle#1\\right\\vert}', 1],
-            'Braket': [
-                '{\\left\\langle #1\\vphantom{#2} \\mid #2\\vphantom{#1}\\right\\rangle}',
-                2,
-            ],
-            'Ket': ['{\\left\\vert#1\\right\\rangle}', 1],
-            'mat': ['{\\mathbf{#1}}', 1],
-            'op': ['{\\hat{#1}}', 1],
-            'Op': ['{\\hat{#1}}', 1],
-            'dd': ['{\\,\\text{d}}', 0],
-            'daggered': ['{^{\\dagger}}', 0],
-            'transposed': ['{^{\\text{T}}}', 0],
-            'Liouville': ['{\\mathcal{L}}', 0],
-            'DynMap': ['{\\mathcal{E}}', 0],
-            'identity': ['{\\mathbf{1}}', 0],
-            'Norm': ['{\\lVert#1\\rVert}', 1],
-            'Abs': ['{\\left\\vert#1\\right\\vert}', 1],
-            'avg': ['{\\langle#1\\rangle}', 1],
-            'Avg': ['{\\left\langle#1\\right\\rangle}', 1],
-            'AbsSq': ['{\\left\\vert#1\\right\\vert^2}', 1],
             'Re': ['{\\operatorname{Re}}', 0],
             'Im': ['{\\operatorname{Im}}', 0],
             'Real': ['{\\mathbb{R}}', 0],
@@ -244,6 +213,13 @@ html_theme_options = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+# JavaScript filenames, relative to html_static_path
+{%- if cookiecutter.docshosting == 'Doctr' %}
+html_js_files = ["version-menu.js"]
+{%- else %}
+html_js_files = ["version-alert.js"]
+{%- endif %}
+
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
 # html_last_updated_fmt = '%b %d, %Y'
@@ -296,13 +272,37 @@ nbsphinx_prolog = r"""
     .. role:: raw-html(raw)
         :format: html
 
-    :raw-html:`<a href="http://nbviewer.jupyter.org/github/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/blob/{%- raw -%}{{ env.config.release }}/{{ docname }}{%- endraw -%}" target="_blank"><img alt="Render on nbviewer" src="https://img.shields.io/badge/render%20on-nbviewer-orange.svg" style="vertical-align:text-bottom"></a>&nbsp;<a href="https://mybinder.org/v2/gh/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/{%- raw -%}{{ env.config.release }}?filepath={{ docname }{%- endraw -%}}" target="_blank"><img alt="Launch Binder" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>`
-"""
+    :raw-html:`<a href="http://nbviewer.jupyter.org/github/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/blob/<<GIT_TAG>>/{%- raw -%}{{ docname }}{%- endraw -%}" target="_blank"><img alt="Render on nbviewer" src="https://img.shields.io/badge/render%20on-nbviewer-orange.svg" style="vertical-align:text-bottom"></a>&nbsp;<a href="https://mybinder.org/v2/gh/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/<<GIT_TAG>>?filepath={%- raw -%}{{ docname }}{%- endraw -%}}" target="_blank"><img alt="Launch Binder" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>`
+""".replace(
+    '<<GIT_TAG>>', git_tag
+)
 
 {%- endif %}
+
+# -- Options for LaTeX output -------------------------------------------------
+
+# latex_engine = 'lualatex'
+latex_elements = {
+    'preamble': r'''
+\usepackage[titles]{tocloft}
+\cftsetpnumwidth {1.25cm}\cftsetrmarg{1.5cm}
+\setlength{\cftchapnumwidth}{0.75cm}
+\setlength{\cftsecindent}{\cftchapnumwidth}
+\setlength{\cftsecnumwidth}{1.25cm}
+\usepackage{emptypage}
+''',
+    'fncychap': r'\usepackage[Bjornstrup]{fncychap}',
+    'printindex': r'\footnotesize\raggedright\printindex',
+    'babel': '',
+}
+latex_show_urls = 'no'
+
 # -----------------------------------------------------------------------------
 
 {%- if cookiecutter.better_apidoc == 'y' %}
+
+
 def setup(app):
     app.connect('builder-inited', run_apidoc)
+
 {%- endif %}

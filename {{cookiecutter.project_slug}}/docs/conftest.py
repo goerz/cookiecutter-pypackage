@@ -7,9 +7,22 @@ import {{ cookiecutter.project_slug }}
 
 @pytest.fixture(autouse=True)
 def set_doctest_env(doctest_namespace):
+    """Inject package itself into doctest namespace.
+
+    This is so we don't need
+        
+    .. doctest::
+
+        >>> import {{ cookiecutter.project_slug }}
+
+    in any doctests
+    """
     doctest_namespace['{{ cookiecutter.project_slug }}'] = {{ cookiecutter.project_slug }}
 
-{% if cookiecutter.use_notebooks == 'y' %}
+
+{%- if cookiecutter.use_notebooks == 'y' %}
+
+
 def pytest_collectstart(collector):
     """Ignore stderr and javascript output when verifying notebooks.
 
