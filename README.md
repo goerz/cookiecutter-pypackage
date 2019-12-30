@@ -5,7 +5,10 @@ cookiecutter-pypackage
 
 A [cookiecutter][] template for a Python 3 package, with a special focus on scientific computing.
 
+The [Wiki][] describes the best practices realized by this template in detail.
+
 [cookiecutter]: https://github.com/audreyr/cookiecutter
+[Wiki]: https://github.com/goerz/cookiecutter-pypackage/wiki
 
 
 Features
