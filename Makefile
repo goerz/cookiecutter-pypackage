@@ -27,4 +27,4 @@ clean:  ## remove testing artifacts
 
 
 test: .venv/bin/cookiecutter  ## run tests
-	PATH=$(shell pwd)/.venv/bin:$(PATH) pytest $(TESTOPTIONS) tests
+	PATH=$(shell pwd)/.venv/bin:$(PATH) pytest --ignore=tests/examples $(TESTOPTIONS) tests

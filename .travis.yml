@@ -23,4 +23,4 @@ cache:
     - /tmp/texlive
     - $HOME/.texlive
 script:
-  - python3.7 -m pytest -v -x -s tests
+  - python3.7 -m pytest -v -x -s --ignore=tests/examples tests
