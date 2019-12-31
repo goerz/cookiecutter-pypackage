@@ -1,16 +1,19 @@
 dist: xenial
 language: generic
 install:
-  - set -e
-  - cd /opt/pyenv/ && git fetch && git merge origin/master && cd -
-  - pyenv install --list
-  - pyenv install --skip-existing 3.5.7
-  - pyenv install --skip-existing 3.8.1
-  - pyenv global 3.5.7 3.6.7 3.7 3.8.1
-  - pyenv versions
-  - export PATH=/tmp/texlive/bin/x86_64-linux:$PATH
+  - wget https://storage.googleapis.com/travis-ci-language-archives/python/binaries/ubuntu/16.04/x86_64/python-3.8.1.tar.bz2
+  - tar -xf python-3.8.1.tar.bz2 -C /
+  - wget https://storage.googleapis.com/travis-ci-language-archives/python/binaries/ubuntu/16.04/x86_64/python-3.5.9.tar.bz2
+  - tar -xf python-3.5.9.tar.bz2 -C /
+  - pyenv global 3.6.7 3.7.1
+  - export PATH=/opt/python/3.8.1/bin:/opt/python/3.5.9/bin:/tmp/texlive/bin/x86_64-linux:$PATH
+  - echo $PATH
+  - python3.5 -V
+  - python3.6 -V
+  - python3.7 -V
+  - python3.8 -V
   - travis_wait source .travis/texlive/texlive_install.sh
-  - python3.7 -m pip install pytest-cookies ipython pdbpp black isort pre-commit flake8 pylint pep8 twine click gitpython doctr tox
+  - python3.7 -m pip install pytest-cookies black isort click gitpython tox
   - python3.7 -m pip freeze
 addons:
   apt_packages:
@@ -19,6 +22,5 @@ cache:
   directories:
     - /tmp/texlive
     - $HOME/.texlive
-    - /opt/pyenv
 script:
   - python3.7 -m pytest -v -x -s tests
