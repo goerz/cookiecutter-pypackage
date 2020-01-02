@@ -12,7 +12,7 @@ echo "# DOCTR - deploy documentation"
 
 {%- if cookiecutter.doctr_artifact_hosting == "bintray" %}
 
-if [ ! -z "$TRAVIS" ]; then
+if [ ! -z "$TRAVIS" ] && [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then
     echo "## Check bintray status"
     # We *always* do this check: we don't just want to find out about
     # authentication errors when making a release
@@ -38,7 +38,7 @@ fi
 
 {%- if cookiecutter.doctr_artifact_hosting == "gh-releases" %}
 
-if [ ! -z "$TRAVIS" ]; then
+if [ ! -z "$TRAVIS" ] && [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then
     echo "## Check GITHUB_TOKEN status"
     # We *always* do this check: we don't just want to find out about
     # authentication errors when making a release
@@ -57,7 +57,7 @@ tox -e docs
 
 if [ ! -z "$TRAVIS_TAG" ]; then
 
-    echo "Deploying as TAG $TRAVIS_TAG"
+    echo "Building as tag '$TRAVIS_TAG'"
 
     echo "## Generate documentation downloads"
     # We generate documentation downloads only for tags (which are assumed to
@@ -93,7 +93,7 @@ if [ ! -z "$TRAVIS_TAG" ]; then
     tox -e docs -- -b epub _build/epub
     mv docs/_build/epub/*.epub "docs/_build/artifacts/{{ cookiecutter.project_slug }}-$TRAVIS_TAG.epub"
 
-    if [ ! -z "$TRAVIS" ]; then
+    if [ ! -z "$TRAVIS" ] && [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then
 
         {%- if cookiecutter.doctr_artifact_hosting == "gh-releases" %}
 
@@ -171,7 +171,7 @@ if [ ! -z "$TRAVIS_TAG" ]; then
 
 elif [ ! -z "$TRAVIS_BRANCH" ]; then
 
-    echo "Deploying as BRANCH $TRAVIS_BRANCH"
+    echo "Building as branch '$TRAVIS_BRANCH'"
 
 else
 
@@ -182,18 +182,25 @@ else
 fi
 
 # Deploy
-if [ ! -z "$TRAVIS" ]; then
+if [ ! -z "$TRAVIS" ] && [ "$TRAVIS_EVENT_TYPE" != "pull_request" ]; then
     echo "## pip install doctr"
     python -m pip install doctr
     echo "## doctr deploy"
     if [ ! -z "$TRAVIS_TAG" ]; then
         DEPLOY_DIR="$TRAVIS_TAG"
     else
-        DEPLOY_DIR="$TRAVIS_BRANCH"
+        case "$TRAVIS_BRANCH" in
+            master|develop) DEPLOY_DIR="$TRAVIS_BRANCH";;
+            *)      echo "Not deploying branch $TRAVIS_BRANCH (not in whitelist)";;
+        esac
     fi
-    python -m doctr deploy --key-path docs/doctr_deploy_key.enc \
-        --command="git show $TRAVIS_COMMIT:.travis/doctr_post_process.py > post_process.py && git show $TRAVIS_COMMIT:.travis/versions.py > versions.py && python post_process.py" \
-        --built-docs docs/_build/html --no-require-master --build-tags "$DEPLOY_DIR"
+    if [ ! -z "$DEPLOY_DIR" ]; then
+        python -m doctr deploy --key-path docs/doctr_deploy_key.enc \
+            --command="git show $TRAVIS_COMMIT:.travis/doctr_post_process.py > post_process.py && git show $TRAVIS_COMMIT:.travis/versions.py > versions.py && python post_process.py" \
+            --built-docs docs/_build/html --no-require-master --build-tags "$DEPLOY_DIR"
+    fi
+else
+    echo "Not deploying to gh-pages (PR or not on Travis)"
 fi
 
 echo "# DOCTR - DONE"
