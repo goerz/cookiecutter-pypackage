@@ -99,6 +99,9 @@ install:
   - travis_wait source .travis/texlive/texlive_install.sh
   {%- endif %}
   - pip install tox
+  {%- if cookiecutter.sphinx_docs == 'y' and cookiecutter.docshosting == 'Doctr'%}
+  - if [[ "${DOCS}" == "true" ]]; then  pip install zip-files; fi
+  {%- endif %}
   - pip freeze
   - printenv
 {%- if cookiecutter.travis_texlive == 'y' %}

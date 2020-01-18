@@ -72,12 +72,7 @@ if [ ! -z "$TRAVIS_TAG" ]; then
     # will then later transfer those links into versions.json
 
     echo "### [zip]"
-    cp -r docs/_build/html "docs/_build/{{ cookiecutter.project_slug }}-$TRAVIS_TAG"
-    cd docs/_build || exit 1
-    zip -r "{{ cookiecutter.project_slug }}-$TRAVIS_TAG.zip" "{{ cookiecutter.project_slug }}-$TRAVIS_TAG"
-    rm -rf "{{ cookiecutter.project_slug }}-$TRAVIS_TAG"
-    cd ../../ || exit 1
-    mv "docs/_build/{{ cookiecutter.project_slug }}-$TRAVIS_TAG.zip" docs/_build/artifacts/
+    zip-folder --debug -a -o "docs/_build/artifacts/{{ cookiecutter.project_slug }}-$TRAVIS_TAG.zip" docs/_build/html
 
     {%- if cookiecutter.travis_texlive == 'y' %}
 
