@@ -38,7 +38,9 @@ def make_release(package_name):
             "Fix errors manually! Continue?", default=True, abort=True
         )
     make_release_commit(new_version)
+    {%- if cookiecutter.sphinx_docs == 'y' %}
     check_docs()
+    {%- endif %}
     run_tests()
     push_release_commit()
     make_upload(test=True)
@@ -300,6 +302,9 @@ def check_dist():
         return False
 
 
+{%- if cookiecutter.sphinx_docs == 'y' %}
+
+
 def check_docs():
     """Verify the documentation (interactively)"""
     click.echo("Making the documentation....")
@@ -312,6 +317,9 @@ def check_docs():
     click.confirm(
         "Does the documentation look correct?", default=True, abort=True
     )
+
+
+{%- endif %}
 
 
 def make_release_commit(version):
