@@ -22,9 +22,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
 
-DOCSDIR = ROOT / 'docs'
+DOCS_SOURCES = ROOT / 'docs' / 'sources'
 
-DOCSBUILDDIR = DOCSDIR / '_build'
+DOCS_BUILDDIR = ROOT / 'docs' / '_build'
 
 # fmt: off
 FILES_TO_DELETE = {
@@ -40,16 +40,13 @@ FILES_TO_DELETE = {
         (ROOT, '[!.]*/**/__pycache__'),
         (ROOT, '**/.DS_Store'),
     ],
-{%- if cookiecutter.sphinx_docs == 'y' %}
     'docs': [
-        DOCSBUILDDIR,
-        (DOCSDIR / 'API', '*.rst'),
-        {%- if cookiecutter.use_notebooks == 'y' %}
-        (DOCSDIR, '*.ipynb.log'),
-        (DOCSDIR, '**/.ipynb_checkpoints'),
-        {%- endif %}
-    ],
+{%- if cookiecutter.sphinx_docs == 'y' %}
+        DOCS_BUILDDIR,
+        (DOCS_SOURCES / 'API', '*.rst'),
+        (DOCS_SOURCES, '**/.ipynb_checkpoints'),
 {%- endif %}
+    ],
     'venv': [
         ROOT / '.tox',
         ROOT / '.venv'

@@ -38,9 +38,9 @@ def make_release(package_name):
             "Fix errors manually! Continue?", default=True, abort=True
         )
     make_release_commit(new_version)
-    {%- if cookiecutter.sphinx_docs == 'y' %}
+{%- if cookiecutter.sphinx_docs == 'y' %}
     check_docs()
-    {%- endif %}
+{%- endif %}
     run_tests()
     push_release_commit()
     make_upload(test=True)
@@ -98,14 +98,14 @@ def get_version(filename):
 
 
 def edit(filename):
-    """Open filename in EDITOR"""
+    """Open filename in EDITOR."""
     editor = os.getenv('EDITOR', 'vi')
     if click.confirm("Open %s in %s?" % (filename, editor), default=True):
         run([editor, filename])
 
 
 def check_git_clean():
-    """Ensure that a given git.Repo is clean"""
+    """Ensure that a given git.Repo is clean."""
     repo = git.Repo(os.getcwd())
     if repo.is_dirty():
         run(['git', 'status'])
@@ -118,7 +118,7 @@ def check_git_clean():
 
 
 def run_tests():
-    """Run 'make test'"""
+    """Run 'make test'."""
     success = False
     while not success:
         try:
@@ -281,12 +281,12 @@ def set_version(filename, version):
 
 
 def edit_history(version):
-    """Interactively edit HISTORY.rst"""
+    """Interactively edit HISTORY.md"""
     click.echo(
-        "Edit HISTORY.rst to add changelog and release date for %s" % version
+        "Edit HISTORY.md to add changelog and release date for %s" % version
     )
-    edit('HISTORY.rst')
-    click.confirm("Is HISTORY.rst up to date?", default=True, abort=True)
+    edit('HISTORY.md')
+    click.confirm("Is HISTORY.md up to date?", default=True, abort=True)
 
 
 def check_dist():
@@ -300,9 +300,6 @@ def check_dist():
     except CalledProcessError as exc_info:
         click.echo("ERROR: %s" % str(exc_info))
         return False
-
-
-{%- if cookiecutter.sphinx_docs == 'y' %}
 
 
 def check_docs():
@@ -319,14 +316,12 @@ def check_docs():
     )
 
 
-{%- endif %}
-
-
 def make_release_commit(version):
-    """Commit Release"""
+    """Commit Release."""
     click.confirm("Make release commit?", default=True, abort=True)
     run(
-        ['git', 'commit', '-a', '-m', "Release %s" % version,], check=True,
+        ['git', 'commit', '-a', '-m', "Release %s" % version],
+        check=True,
     )
 
 
@@ -362,7 +357,7 @@ def make_upload(test=True):
 
 
 def push_release_commit():
-    """Push local commits to origin"""
+    """Push local commits to origin."""
     click.confirm("Push release commit to origin?", default=True, abort=True)
     run(['git', 'push', 'origin', 'master'], check=True)
     click.confirm(
@@ -373,16 +368,47 @@ def push_release_commit():
 
 
 def make_and_push_tag(version):
-    """Tag the current commit and push that tag to origin"""
+    """Tag the current commit and push that tag to origin."""
     click.confirm(
-        "Push tag '%s' to origin?" % version, default=True, abort=True
+        "Create signed tag v'%s' and push to origin?" % version,
+        default=True,
+        abort=True,
     )
-    run(['git', 'tag', "-s", "v%s" % version], check=True)
-    run(['git', 'push', '--tags', 'origin'], check=True)
+    click.confirm(
+        (
+            "Please use 'Release %s' as the message title, and the full "
+            "release notes in markdown format as the message body."
+        )
+        % version,
+        default=True,
+        abort=False,
+    )
+    try:
+        run(['git', 'tag', "-s", "v%s" % version], check=True)
+    except CalledProcessError as exc_info:
+        click.echo(
+            "Failed to create signed tag 'v%s': %s" % (version, str(exc_info))
+        )
+        click.echo(
+            "Please create signed tag manually (git tag -s v%s)" % version
+        )
+        click.confirm("Continue with pushing tag to origin?", default=True)
+    try:
+        run(['git', 'push', '--tags', 'origin'], check=True)
+    except CalledProcessError as exc_info:
+        click.confirm(
+            (
+                "Failed to push tags: %s. "
+                "Please push manually (git push --tags origin). "
+                "Continue?"
+            )
+            % str(exc_info),
+            default=True,
+        )
 
 
 def make_next_dev_version_commit(version):
-    """Commit 'Bump version to xxx'"""
+    """Commit 'Bump version to xxx'."""
     click.confirm(
         "Make commit for bumping to %s?" % version, default=True, abort=True
     )

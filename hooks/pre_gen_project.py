@@ -21,7 +21,3 @@ executables = ['tox', 'python{{ cookiecutter.main_python }}']
 for executable in executables:
     if not shutil.which(executable):
         print('WARNING: You do not have the %s executable.' % executable)
-if "{{ cookiecutter.docshosting }}" == "Doctr":
-    if "{{ cookiecutter.travisci }}" != "y":
-        print('ERROR: Using Doctr requires that you also use Travis CI')
-        sys.exit(1)  # cancel project

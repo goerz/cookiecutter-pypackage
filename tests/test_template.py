@@ -179,24 +179,6 @@ def check_default_files(project):
     assert files_match_expected(str(project), expected_files)
 
 
-def check_notebook_files(project):
-    """Check the list of files for the default settings
-
-    This check must run before any 'make test' or 'make docs'
-    """
-    expected_files = _get_expected_files('notebooks')
-    assert files_match_expected(str(project), expected_files)
-
-
-def check_rtd_files(project):
-    """Check the list of files for the default settings
-
-    This check must run before any 'make test' or 'make docs'
-    """
-    expected_files = _get_expected_files('rtd')
-    assert files_match_expected(str(project), expected_files)
-
-
 def check_minimal_files(project):
     """Check the list of files for the minimal settings
 
@@ -241,45 +223,6 @@ def check_make_docs(project):
     """Check that 'make docs' exits with no error"""
     res = make(project, 'docs')
     assert res.returncode == 0
-
-
-def check_make_docs_pdf(project):
-    """Check that 'make docs-pdf' exits with no error"""
-    res = make(project, 'docs-pdf')
-    assert res.returncode == 0
-
-
-def check_build_artifacts(project):
-    """Check that the doctr_build script produces expected artifacts."""
-    cmd = ['sh', '.travis/doctr_build.sh']
-    env = os.environ.copy()
-    env_keys = list(env.keys())
-    for key in env_keys:
-        if key.startswith('TRAVIS'):
-            del env[key]
-    env['TRAVIS_TAG'] = 'v1.0.0'
-    result = subprocess.run(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=False,
-        cwd=str(project),
-        timeout=600,
-        check=False,
-        universal_newlines=True,
-        env=env,
-    )
-    if result.returncode != 0:
-        print("\n'%s' STDOUT:\n%s" % (" ".join(cmd), result.stdout))
-        print("\n'%s' STDERR:\n%s" % (" ".join(cmd), result.stderr))
-    assert result.returncode == 0
-    filenames = [
-        'python_boilerplate-v1.0.0.epub',
-        'python_boilerplate-v1.0.0.pdf',
-        'python_boilerplate-v1.0.0.zip',
-    ]
-    for filename in filenames:
-        assert project.join('docs', '_build', 'artifacts', filename).isfile()
 
 
 def check_api_files(project):
@@ -328,7 +271,6 @@ def check_default_make_help(project):
         test38               run tests for Python 3.8
         test39               run tests for Python 3.9
         docs                 generate Sphinx HTML documentation, including API docs
-        docs-pdf             generate Sphinx PDF documentation, via latex
         black-check          Check all src and test files for complience to "black" code style
         black                Apply 'black' code style to all src and test files
         isort-check          Check all src and test files for correctly sorted imports
@@ -339,51 +281,6 @@ def check_default_make_help(project):
         release              Create a new version, package and upload it
         dist                 builds source and wheel package
         dist-check           Check all dist files for correctness
-        '''
-    ).strip()
-    assert stdout == expected
-
-
-def check_notebook_make_help(project):
-    """Check that we have the expected make targets in the default
-    configuration with notebooks enabled."""
-    res = make(project, 'help')
-    stdout = res.stdout
-    # some versions of make print additional information that we need to strip
-    stdout = re.sub(r'make.*: Entering directory.*\n', '', stdout)
-    stdout = re.sub(r'make.*: Leaving directory.*', '', stdout)
-    stdout = stdout.strip()
-    expected = dedent(
-        r'''
-        help                 show this help
-        bootstrap            verify that tox is available and pre-commit hooks are active
-        clean                remove all build, docs, test, and coverage artifacts, as well as tox environments
-        clean-build          remove build artifacts
-        clean-tests          remove test and coverage artifacts
-        clean-venv           remove tox virtual environments
-        clean-docs           remove documentation artifacts
-        flake8-check         check style with flake8
-        pylint-check         check style with pylint
-        test                 run tests for all supported Python versions
-        test35               run tests for Python 3.5
-        test36               run tests for Python 3.6
-        test37               run tests for Python 3.7
-        test38               run tests for Python 3.8
-        test39               run tests for Python 3.9
-        docs                 generate Sphinx HTML documentation, including API docs
-        docs-pdf             generate Sphinx PDF documentation, via latex
-        black-check          Check all src and test files for complience to "black" code style
-        black                Apply 'black' code style to all src and test files
-        isort-check          Check all src and test files for correctly sorted imports
-        isort                Sort imports in all src and test files
-        coverage             generate coverage report in ./htmlcov
-        test-upload          package and upload a release to test.pypi.org
-        upload               package and upload a release to pypi.org
-        release              Create a new version, package and upload it
-        dist                 builds source and wheel package
-        dist-check           Check all dist files for correctness
-        jupyter-notebook     run a notebook server for editing the examples
-        jupyter-lab          run a jupyterlab server for editing the examples
         '''
     ).strip()
     assert stdout == expected
@@ -414,6 +311,10 @@ def check_minimal_make_help(project):
         test37               run tests for Python 3.7
         test38               run tests for Python 3.8
         test39               run tests for Python 3.9
+        black-check          Check all src and test files for complience to "black" code style
+        black                Apply 'black' code style to all src and test files
+        isort-check          Check all src and test files for correctly sorted imports
+        isort                Sort imports in all src and test files
         coverage             generate coverage report in ./htmlcov
         dist                 builds source and wheel package
         dist-check           Check all dist files for correctness
@@ -449,7 +350,7 @@ def check_black_ok(project):
 
 
 def check_isort_ok(project):
-    """Check that the entire project passes inspection with black.
+    """Check that the entire project passes inspection with isort.
 
     The documentation conf.py is excluded.
     """
@@ -460,7 +361,7 @@ def check_isort_ok(project):
         '--diff',
         '--verbose',
         '--skip',
-        'docs/conf.py',
+        'docs/sources/conf.py',
         '.',
     ]
     result = subprocess.run(
@@ -515,7 +416,7 @@ def check_defaults_venvs(project):
     """
     assert not project.join('.tox', 'py34').exists()
     assert not project.join('.tox', 'py35').exists()
-    assert project.join('.tox', 'py36').isdir()
+    assert not project.join('.tox', 'py36').isdir()
     assert project.join('.tox', 'py37').isdir()
     assert project.join('.tox', 'py38').isdir()
     assert not project.join('.tox', 'py39').exists()
@@ -547,72 +448,20 @@ CONFIGURATIONS = [
             check_git_hooks,  # should have been created by "make docs"
             check_committing_code,
             check_make_docs,
-            check_make_docs_pdf,
             check_api_files,
-        ],
-    ),
-    (
-        'artifacts',
-        {
-            'interactive_postsetup': 'n',
-            'travis_texlive': 'y'
-        },
-        [
-            check_call(['git', 'init']),
-            check_call(['git', 'add', '.']),
-            check_call(['git', 'commit', '-m', 'Initial commit']),
-            check_call(['git', 'log'], in_stdout='Initial commit'),
-            check_committing_code,
-            check_build_artifacts,
-            check_api_files,
-        ],
-    ),
-    (
-        'notebooks',
-        {
-            'interactive_postsetup': 'n',
-            'use_notebooks': 'y'
-
-        },
-        [
-            check_notebook_make_help,
-            check_notebook_files,
-            check_make_test,
-            check_make_docs,
-        ],
-    ),
-    (
-        'rtd',
-        {
-            'docshosting': 'ReadTheDocs',
-            'interactive_postsetup': 'n'
-        },
-        [
-            check_default_make_help,
-            check_rtd_files,
         ],
     ),
     (
         'minimal',
         {
-            "create_author_file": "n",
-            "use_isort": "n",
-            "use_black": "n",
-            "use_pre_commit": "n",
             "on_pypi": "n",
-            "travisci": "n",
-            "appveyor": "n",
-            "coverage": "None",
             "sphinx_docs": "n",
-            "use_notebooks": "n",
             "better_apidoc": "n",
-            "docshosting": "None",
             "support_py35": "n",
             "support_py36": "n",
             "support_py37": "y",
             "support_py38": "n",
             "support_py39": "n",
-            "use_git_flow": "n",
             "interactive_postsetup": "n",
         },
         [
@@ -631,7 +480,6 @@ CONFIGURATIONS = [
             "support_py37": "n",
             "support_py38": "y",
             "support_py39": "n",
-            "use_notebooks": "n",
             "interactive_postsetup": 'n',
         },
         [

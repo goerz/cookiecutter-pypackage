@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """The setup script."""
 import sys
 
@@ -15,41 +14,48 @@ def get_version(filename):
     raise ValueError("Cannot extract version from %s" % filename)
 
 
-with open('README.rst', encoding='utf8') as readme_file:
-    readme = readme_file.read()
+with open('README.md', encoding='utf8') as readme_file:
+    README = readme_file.read()
 
 try:
-    with open('HISTORY.rst', encoding='utf8') as history_file:
-        history = history_file.read()
+    with open('HISTORY.md', encoding='utf8') as history_file:
+        HISTORY = history_file.read()
 except OSError:
-    history = ''
+    HISTORY = ''
 
 # requirements for use
 requirements = []
 
 # requirements for development (testing, generating docs)
 dev_requirements = [
-    'coverage<5.0',  # 5.0 breaks a lot of other packages:
-    # https://github.com/computationalmodelling/nbval/issues/129
-    # https://github.com/codecov/codecov-python/issues/224
+    'better-apidoc',
+    'coverage',
+    'coveralls',
+    'doctr-versions-menu',
     'flake8',
     'gitpython',
+    'isort',
     'ipython',
+    'pre-commit',
     'pdbpp',
     'pylint',
     'pytest',
     'pytest-cov',
     'pytest-xdist',
+    'm2r',
+    'recommonmark',
     'sphinx',
     'sphinx-autobuild',
+    'sphinx-copybutton',
     'sphinx-autodoc-typehints',
     'sphinx_rtd_theme',
     'twine',
     'wheel',
 ]
+if sys.version_info >= (3, 6):
+    dev_requirements.append('black')
 
-
-version = get_version('./src/python_boilerplate/__init__.py')
+VERSION = get_version('./src/python_boilerplate/__init__.py')
 
 setup(
     author="Michael Goerz",
@@ -69,14 +75,14 @@ setup(
     install_requires=requirements,
     extras_require={'dev': dev_requirements},
     license="BSD license",
-    long_description=readme + '\n\n' + history,
-    long_description_content_type='text/x-rst',
+    long_description=README + '\n\n' + HISTORY,
+    long_description_content_type='text/markdown',
     include_package_data=True,
     keywords='python_boilerplate',
     name='python_boilerplate',
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     url='https://github.com/goerz/python_boilerplate',
-    version=version,
+    version=VERSION,
     zip_safe=False,
 )

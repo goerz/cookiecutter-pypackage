@@ -1,0 +1,139 @@
+name: Docs
+
+on: [push, ]
+
+jobs:
+
+  build_docs:
+    name: Build Sphinx docs
+    runs-on: ubuntu-18.04
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        name: Install Python {{ cookiecutter.main_python }}
+        with:
+          python-version: {{ cookiecutter.main_python }}
+
+      - name: Install Tox
+        run: pip install tox
+
+      - name: Generate HTML Documentation
+        run: tox -e docs
+
+      - name: Get the version
+        id: get_version
+        shell: python
+        run: |
+          from pathlib import Path
+          with Path("src" / "{{ cookiecutter.project_slug }}" / "setupy.py").open(encoding='utf8') as in_fh:
+              for line in in_fh:
+                  if line.startswith('__version__'):
+                      version = line.split('=')[1].strip()[1:-1]
+                      print("::set-output name=version::%s" % version)
+                      break
+
+      - name: Zip the HTML documentation
+        run: zip-folder --debug --auto-root --outfile "{{ cookiecutter.project_slug }}-docs-${{ '{{' }} steps.get_version.outputs.version {{ '}}' }}.zip" docs/_build/html
+
+
+      - uses: actions/upload-artifact@v2
+        name: Upload documentation artifacts
+        with:
+          name: {{ cookiecutter.project_slug }}-docs
+          # We need at least two files in the artifact to avoid a weird
+          # double-zip file. Hence README.md
+          path: |
+            README.md
+            ./{{ cookiecutter.project_slug }}-docs-${{ '{{' }} steps.get_version.outputs.version {{ '}}' }}.*
+
+
+  deploy_gh_pages:
+    name: Deploy documentation to gh-pages
+    if: always() && needs.build_docs.result == 'success' && (github.ref == 'refs/heads/{{ cookiecutter.main_branch}}' || startsWith(github.ref, 'refs/tags/'))
+    runs-on: ubuntu-18.04
+    needs: [build_docs, create_github_release]
+    steps:
+
+      - uses: actions/setup-python@v2
+        name: Install Python {{ cookiecutter.main_python }}
+        with:
+          python-version: {{ cookiecutter.main_python }}
+
+      - name: Install deploy requirements
+        run: pip install doctr_versions_menu
+
+      - name: Get branch name
+        shell: bash
+        run: |
+          echo ${{ '{{' }} github.ref {{ '}}' }}
+          echo "BRANCH_NAME=$(echo ${GITHUB_REF##*/} | tr / -)" >> $GITHUB_ENV
+          cat $GITHUB_ENV
+
+      - uses: actions/checkout@v2
+        name: Check out gh-pages branch (full history)
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v2
+        name: Download {{ cookiecutter.project_slug }}-docs artifact
+        with:
+          name: {{ cookiecutter.project_slug }}-docs
+          path: _{{ cookiecutter.project_slug }}_docs
+
+      - name: Unzip html documentation
+        working-directory: _{{ cookiecutter.project_slug }}_docs
+        shell: bash
+        run: |
+          unzip *.zip -d _unzip
+          mv _unzip/* _unzip/${{ '{{' }} env.BRANCH_NAME {{ '}}' }}
+
+      - name: Rsync html documentation into place
+        run: rsync -av --delete _{{ cookiecutter.project_slug }}_docs/_unzip/${{ '{{' }} env.BRANCH_NAME {{ '}}' }}/ ./${{ '{{' }} env.BRANCH_NAME {{ '}}' }}/
+
+      - name: Remove artifact files
+        shell: bash
+        run: rm -rf _{{ cookiecutter.project_slug }}_docs
+
+      - name: Run doctr-versions-menu
+        run: doctr-versions-menu
+
+      - name: Get the previous commit message
+        id: get_previous_commit
+        run: |
+          git log --format=%B -n 1 | tee .git/_github_actions_commit_msg
+          echo ::set-output name=log::$(cat .git/_github_actions_commit_msg)
+          echo ::set-output name=lastline::$(cat .git/_github_actions_commit_msg | grep -v '^$' | tail -n1)
+          echo ::set-output name=author::$(git log --format=%an -n 1)
+
+      - name: Set git configuration
+        shell: bash
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+      - name: Commit changes
+        shell: bash
+        run: |
+          echo "Committing to gh-pages"
+          echo "# GIT ADD"
+          git add -A --verbose
+          echo "# GIT STATUS"
+          git status
+          echo "# GIT COMMIT"
+          if [[ "${{ '{{' }} steps.get_previous_commit.outputs.author {{ '}}' }}" == "github-actions"* && "${{ '{{' }} steps.get_previous_commit.outputs.lastline {{ '}}' }}" == *"${{ '{{' }} github.ref {{ '}}' }}"* ]];
+          then
+            # we ammend if the previous commit was down by Github Actions and was based on the same branch/tag name
+            echo "Amending previous commit"
+            echo "Deployed from commit ${GITHUB_SHA} (${GITHUB_REF})" >> .git/_github_actions_commit_msg
+            git commit --verbose --amend -F .git/_github_actions_commit_msg
+          else
+            echo "Making new commit"
+            git commit --verbose -m "Auto-update from Github Actions Workflow" -m "Deployed from commit ${GITHUB_SHA} (${GITHUB_REF})"
+          fi
+          git log -n 1
+
+      - name: Push changes
+        run: git push --verbose --force
