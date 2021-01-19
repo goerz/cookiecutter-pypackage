@@ -1,7 +1,7 @@
 cookiecutter-pypackage
 ======================
 
-[![Build Status](https://travis-ci.org/goerz/cookiecutter-pypackage.svg?branch=master)](https://travis-ci.org/goerz/cookiecutter-pypackage)
+[![Tests](https://github.com/goerz/cookiecutter-pypackage/workflows/Tests/badge.svg)](https://github.com/goerz/cookiecutter-pypackage/actions?query=workflow%3ATests)
 
 A [cookiecutter][] template for a Python 3 package.
 
