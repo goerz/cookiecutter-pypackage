@@ -153,6 +153,8 @@ napoleon_use_ivar = False
 napoleon_use_param = True
 napoleon_use_rtype = True
 
+doctr_versions_menu_conf = {'menu_title': 'Docs'}
+
 # -- Monkeypatch for instance attribs (sphinx bug #2044) -----------------------
 
 from sphinx.ext.autodoc import (
