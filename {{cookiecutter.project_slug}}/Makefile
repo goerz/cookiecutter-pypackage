@@ -1,4 +1,4 @@
-.PHONY: help clean clean-build clean-pyc clean-test clean-venv flake8-check pylint-check test test35 test36 test37 test38 {%- if cookiecutter.sphinx_docs == 'y' %} docs docs-pdf clean-docs{% endif %} {%- if cookiecutter.use_black == 'y' %} black-check black{% endif %} {%- if cookiecutter.use_isort == 'y' %} isort-check isort{% endif %} coverage {%- if cookiecutter.on_pypi == 'y' %} test-upload upload release{% endif %} dist dist-check {%- if cookiecutter.use_notebooks == 'y' %} notebooks jupyter-notebook jupyter-lab{% endif %}
+.PHONY: help bootstrap clean clean-build clean-test clean-venv flake8-check pylint-check test test35 test36 test37 test38 test39 {%- if cookiecutter.sphinx_docs == 'y' %} docs clean-docs{% endif %} black-check black isort-check isort coverage {%- if cookiecutter.on_pypi == 'y' %} test-upload upload release{% endif %} dist dist-check
 	
 .DEFAULT_GOAL := help
 
@@ -52,7 +52,6 @@ pylint-check: bootstrap ## check style with pylint
 	$(TOX) -e run-pylint
 
 {% set testenvs = [] %}
-{%- if cookiecutter.support_py35 == "y" and testenvs.append("py35-test") %}{% endif %}
 {%- if cookiecutter.support_py36 == "y" and testenvs.append("py36-test") %}{% endif %}
 {%- if cookiecutter.support_py37 == "y" and testenvs.append("py37-test") %}{% endif %}
 {%- if cookiecutter.support_py38 == "y" and testenvs.append("py38-test") %}{% endif %}
@@ -81,13 +80,7 @@ docs: bootstrap ## generate Sphinx HTML documentation, including API docs
 	$(TOX) -e docs
 	@echo "open docs/_build/html/index.html"
 
-docs-pdf: bootstrap ## generate Sphinx PDF documentation, via latex
-	$(TOX) -e docs -- -b latex _build/latex
-	$(TOX) -e run-cmd -- python docs/build_pdf.py docs/_build/latex/*.tex
-
 {%- endif %}
-
-{%- if cookiecutter.use_black == 'y' %}
 
 black-check: bootstrap ## Check all src and test files for complience to "black" code style
 	$(TOX) -e run-blackcheck
@@ -95,17 +88,11 @@ black-check: bootstrap ## Check all src and test files for complience to "black"
 black: bootstrap ## Apply 'black' code style to all src and test files
 	$(TOX) -e run-black
 
-{%- endif %}
-
-{%- if cookiecutter.use_isort == 'y' %}
-
 isort-check: bootstrap ## Check all src and test files for correctly sorted imports
 	$(TOX) -e run-isortcheck
 
 isort: bootstrap ## Sort imports in all src and test files
 	$(TOX) -e run-isort
-
-{%- endif %}
 
 coverage: test37  ## generate coverage report in ./htmlcov
 	$(TOX) -e coverage
@@ -135,21 +122,3 @@ dist: bootstrap ## builds source and wheel package
 
 dist-check: bootstrap ## Check all dist files for correctness
 	$(TOX) -e run-cmd -- twine check dist/*
-
-# How to execute notebook files
-%.ipynb.log: %.ipynb
-	@echo ""
-	$(TOX) -e run-cmd -- jupyter nbconvert --to notebook --execute --inplace --allow-errors --ExecutePreprocessor.kernel_name='python3'  --ExecutePreprocessor.timeout=-1 --config=/dev/null $< 2>&1 | tee $@
-
-{%- if cookiecutter.use_notebooks == 'y' %}
-
-notebooks: docs/tutorial.ipynb.log
-
-jupyter-notebook: bootstrap ## run a notebook server for editing the examples
-	$(TOX) -e run-cmd -- jupyter notebook --config=/dev/null
-
-jupyter-lab: bootstrap ## run a jupyterlab server for editing the examples
-	$(TOX) -e run-cmd -- pip install jupyterlab
-	$(TOX) -e run-cmd -- jupyter lab --config=/dev/null
-
-{%- endif %}

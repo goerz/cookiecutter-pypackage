@@ -1,4 +1,4 @@
-.PHONY: help clean clean-build clean-pyc clean-test clean-venv flake8-check pylint-check test test35 test36 test37 test38 coverage dist dist-check
+.PHONY: help bootstrap clean clean-build clean-test clean-venv flake8-check pylint-check test test35 test36 test37 test38 test39 black-check black isort-check isort coverage dist dist-check
 	
 .DEFAULT_GOAL := help
 
@@ -63,6 +63,18 @@ test38: bootstrap ## run tests for Python 3.8
 test39: bootstrap ## run tests for Python 3.9
 	$(TOX) -e py39-test -- $(TESTS)
 
+black-check: bootstrap ## Check all src and test files for complience to "black" code style
+	$(TOX) -e run-blackcheck
+
+black: bootstrap ## Apply 'black' code style to all src and test files
+	$(TOX) -e run-black
+
+isort-check: bootstrap ## Check all src and test files for correctly sorted imports
+	$(TOX) -e run-isortcheck
+
+isort: bootstrap ## Sort imports in all src and test files
+	$(TOX) -e run-isort
+
 coverage: test37  ## generate coverage report in ./htmlcov
 	$(TOX) -e coverage
 	@echo "open htmlcov/index.html"
@@ -74,8 +86,3 @@ dist: bootstrap ## builds source and wheel package
 
 dist-check: bootstrap ## Check all dist files for correctness
 	$(TOX) -e run-cmd -- twine check dist/*
-
-# How to execute notebook files
-%.ipynb.log: %.ipynb
-	@echo ""
-	$(TOX) -e run-cmd -- jupyter nbconvert --to notebook --execute --inplace --allow-errors --ExecutePreprocessor.kernel_name='python3'  --ExecutePreprocessor.timeout=-1 --config=/dev/null $< 2>&1 | tee $@

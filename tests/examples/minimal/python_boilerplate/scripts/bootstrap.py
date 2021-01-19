@@ -31,7 +31,6 @@ def main(argv=None):
     # Ensure pre-commit hooks are installed
     if (root / ".git").is_dir():
         if not (root / ".git" / "hooks" / "pre-commit").is_file():
-            # we're using the tox.ini environments that we got from step 1
             print("bootstrapping pre-commit hook")
             cmdline = ['-e', 'run-cmd', '--', 'pre-commit', 'install']
             print("tox " + " ".join(cmdline))

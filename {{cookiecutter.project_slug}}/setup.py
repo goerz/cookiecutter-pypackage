@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """The setup script."""
 import sys
 
@@ -15,71 +14,52 @@ def get_version(filename):
     raise ValueError("Cannot extract version from %s" % filename)
 
 
-with open('README.rst', encoding='utf8') as readme_file:
-    readme = readme_file.read()
+with open('README.md', encoding='utf8') as readme_file:
+    README = readme_file.read()
 
 try:
-    with open('HISTORY.rst', encoding='utf8') as history_file:
-        history = history_file.read()
+    with open('HISTORY.md', encoding='utf8') as history_file:
+        HISTORY = history_file.read()
 except OSError:
-    history = ''
+    HISTORY = ''
 
 # requirements for use
 requirements = []
 
 # requirements for development (testing, generating docs)
 dev_requirements = [
-{%- if cookiecutter.better_apidoc == 'y' %}
     'better-apidoc',
-{%- endif %}
-    'coverage<5.0',  # 5.0 breaks a lot of other packages:
-    # https://github.com/computationalmodelling/nbval/issues/129
-    # https://github.com/codecov/codecov-python/issues/224
-{%- if cookiecutter.coverage == 'coveralls' %}
+    'coverage',
     'coveralls',
-{%- endif %}
-{%- if cookiecutter.coverage == 'codecov' %}
-    'codecov',
-{%- endif %}
-{%- if cookiecutter.docshosting == 'Doctr' %}
-    'doctr',
+{%- if cookiecutter.sphinx_docs %}
+    'doctr-versions-menu',
 {%- endif %}
     'flake8',
     'gitpython',
-{%- if cookiecutter.use_isort == 'y' %}
     'isort',
-{%- endif %}
     'ipython',
-{%- if cookiecutter.use_pre_commit == 'y' %}
     'pre-commit',
-{%- endif %}
     'pdbpp',
     'pylint',
     'pytest',
     'pytest-cov',
     'pytest-xdist',
+{%- if cookiecutter.sphinx_docs %}
+    'm2r',
+    'recommonmark',
     'sphinx',
     'sphinx-autobuild',
+    'sphinx-copybutton',
     'sphinx-autodoc-typehints',
     'sphinx_rtd_theme',
-{%- if cookiecutter.travisci == 'y' %}
-    'travis-encrypt',
 {%- endif %}
     'twine',
     'wheel',
-{%- if cookiecutter.use_notebooks == 'y' %}
-    'jupyter',
-    'nbval',
-    'nbsphinx',
-    'watermark',
-{%- endif %}
 ]
-{% if cookiecutter.use_black == 'y' %}
 if sys.version_info >= (3, 6):
     dev_requirements.append('black')
-{%- endif %}
 
-version = get_version('./src/{{ cookiecutter.project_slug }}/__init__.py')
+VERSION = get_version('./src/{{ cookiecutter.project_slug }}/__init__.py')
 
 
 {%- set license_classifiers = {
@@ -100,9 +80,6 @@ setup(
         '{{ license_classifiers[cookiecutter.open_source_license] }}',
 {%- endif %}
         'Natural Language :: English',
-{%- if cookiecutter.support_py35 == 'y' %}
-        'Programming Language :: Python :: 3.5',
-{%- endif %}
 {%- if cookiecutter.support_py36 == 'y' %}
         'Programming Language :: Python :: 3.6',
 {%- endif %}
@@ -120,20 +97,20 @@ setup(
     description=(
         "{{ cookiecutter.project_short_description }}"
     ),
-    python_requires='>={% if cookiecutter.support_py35 == 'y' %}3.5{% elif cookiecutter.support_py36 == 'y' %}3.6{% elif cookiecutter.support_py37 == 'y' %}3.7{% elif cookiecutter.support_py38 == 'y' %}3.8{% elif cookiecutter.support_py39 == 'y' %}3.9{% else %}3{% endif %}',
+    python_requires='>={% if cookiecutter.support_py36 == 'y' %}3.6{% elif cookiecutter.support_py37 == 'y' %}3.7{% elif cookiecutter.support_py38 == 'y' %}3.8{% elif cookiecutter.support_py39 == 'y' %}3.9{% else %}3{% endif %}',
     install_requires=requirements,
     extras_require={'dev': dev_requirements},
 {%- if cookiecutter.open_source_license in license_classifiers %}
     license="{{ cookiecutter.open_source_license }}",
 {%- endif %}
-    long_description=readme + '\n\n' + history,
-    long_description_content_type='text/x-rst',
+    long_description=README + '\n\n' + HISTORY,
+    long_description_content_type='text/markdown',
     include_package_data=True,
     keywords='{{ cookiecutter.project_slug }}',
     name='{{ cookiecutter.project_slug }}',
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     url='https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}',
-    version=version,
+    version=VERSION,
     zip_safe=False,
 )

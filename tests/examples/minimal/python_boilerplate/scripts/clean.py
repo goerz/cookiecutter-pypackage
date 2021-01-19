@@ -22,9 +22,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
 
-DOCSDIR = ROOT / 'docs'
+DOCS_SOURCES = ROOT / 'docs' / 'sources'
 
-DOCSBUILDDIR = DOCSDIR / '_build'
+DOCS_BUILDDIR = ROOT / 'docs' / '_build'
 
 # fmt: off
 FILES_TO_DELETE = {
@@ -39,6 +39,8 @@ FILES_TO_DELETE = {
         (ROOT / 'src', '*.egg-info'),
         (ROOT, '[!.]*/**/__pycache__'),
         (ROOT, '**/.DS_Store'),
+    ],
+    'docs': [
     ],
     'venv': [
         ROOT / '.tox',

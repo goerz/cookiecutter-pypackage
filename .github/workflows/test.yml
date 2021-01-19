@@ -1,0 +1,52 @@
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+
+  run_tests:
+    name:  Run tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        name: Install Python 3.5
+        with:
+          python-version: 3.5
+
+      - uses: actions/setup-python@v2
+        name: Install Python 3.6
+        with:
+          python-version: 3.6
+
+      - uses: actions/setup-python@v2
+        name: Install Python 3.7
+        with:
+          python-version: 3.7
+
+      - uses: actions/setup-python@v2
+        name: Install Python 3.9
+        with:
+          python-version: 3.9
+
+      - uses: actions/setup-python@v2
+        name: Install Python 3.8
+        with:
+          python-version: 3.8
+
+      - name: Check default Python version
+        # should be the version below used to run the tests
+        run: python --version
+
+      - name: Install Tox and other Python prerequisites
+        run: python3.8 -m pip install pytest-cookies black isort click gitpython tox
+
+      - name: Set git configuration
+        shell: bash
+        run: |
+          git config --global user.name github-actions
+          git config --global user.email github-actions@github.com
+
+      - name: Run Tests
+        run: python3.8 -m pytest -v -x -s --ignore=tests/examples tests
