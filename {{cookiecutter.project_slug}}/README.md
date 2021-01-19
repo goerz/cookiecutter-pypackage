@@ -1,13 +1,13 @@
 # {{ cookiecutter.project_name }}
 {% set github_project_root =  "https://github.com/" ~ cookiecutter.github_username  ~ "/" ~ cookiecutter.project_slug  %}
-[![Source code on Github](https://img.shields.io/badge/{{ cookiecutter.github_username | replace("-","--") | replace("_", "__") }}-{{ cookiecutter.project_slug | replace("-","--") | replace("_", "__") }}-blue.svg?logo=github)](https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }})
+[![Source code on Github](https://img.shields.io/badge/{{ cookiecutter.github_username | replace("-","--") | replace("_", "__") }}-{{ cookiecutter.project_slug | replace("-","--") | replace("_", "__") }}-blue.svg?logo=github)][Github]
 {%- if cookiecutter.on_pypi == 'y' %}
 [![PyPI](https://img.shields.io/pypi/v/{{ cookiecutter.project_slug }}.svg)](https://pypi.python.org/pypi/{{ cookiecutter.project_slug }})
 {%- else %}
 <!--Not on PyPI-->
 {%- endif %}
 {%- if cookiecutter.sphinx_docs == 'y' %}
-[![Documentation](https://img.shields.io/badge/docs-gh--pages-blue.svg)](https://{{ cookiecutter.github_username }}.github.io/{{ cookiecutter.project_slug }}/)
+[![Documentation](https://img.shields.io/badge/docs-gh--pages-blue.svg)][docs]
 [![Docs]({{ github_project_root }}/workflows/Docs/badge.svg?branch={{ cookiecutter.main_branch }})]({{ github_project_root }}/actions?query=workflow%3ADocs)
 {%- else %}
 <!--No online documentation-->
@@ -41,7 +41,7 @@ You can read the full documentation [online][docs].
 {%- if cookiecutter.on_pypi == 'y' %}
 To install the latest released version of {{ cookiecutter.project_name }}, run this command in your terminal:
 
-``` console
+```
 pip install {{ cookiecutter.project_slug }}
 ```
 
@@ -52,8 +52,8 @@ If you don't have [pip](https://pip.pypa.io) installed, the [Python installation
 
 To install the latest development version of {{ cookiecutter.project_name }} from [Github][].
 
-``` console
-$ pip install git+https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}.git@{{ cookiecutter.main_branch }} }}#egg={{ cookiecutter.project_slug }}
+```
+pip install git+https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}.git@{{ cookiecutter.main_branch }} }}#egg={{ cookiecutter.project_slug }}
 ```
 
 {% if cookiecutter.on_pypi == 'n' %}
@@ -62,11 +62,12 @@ $ pip install git+https://github.com/{{ cookiecutter.github_username }}/{{ cooki
 
 {%-endif%}
 
-[Github]: {{ github_project_root }}
-
-
 ## Usage
 
-To use {{ cookiecutter.project_name }} in a project:
+To use {{ cookiecutter.project_name }} in a Python project:
 
-    import {{ cookiecutter.project_slug }}
+``` python
+import {{ cookiecutter.project_slug }}
+```
+
+[Github]: {{ github_project_root }}
