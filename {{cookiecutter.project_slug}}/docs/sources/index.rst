@@ -10,7 +10,7 @@ Welcome to {{ cookiecutter.project_name }}'s documentation!
 
 {%- if cookiecutter.on_pypi == 'y' %}
 
-   .. image:: https://img.shields.io/pypi/v/{{ cookiecutter.project_slug }}.svg
+   .. image:: https://img.shields.io/pypi/v/{{ cookiecutter.project_slug }}
       :alt: PyPI
       :target: https://pypi.python.org/pypi/{{ cookiecutter.project_slug }}
 
@@ -22,13 +22,13 @@ Welcome to {{ cookiecutter.project_name }}'s documentation!
       :alt: Documentation
       :target: https://{{ cookiecutter.github_username }}.github.io/{{ cookiecutter.project_slug }}/
 
-   .. image:: {{ github_project_root }}/workflows/Docs/badge.svg?branch={{ cookiecutter.main_branch }}
+   .. image:: {{ github_project_root }}/actions/workflows/docs.yml/badge.svg?branch={{ cookiecutter.main_branch }}
       :alt: Docs
       :target: {{ github_project_root }}/actions?query=workflow%3ADocs
 
 {%- endif %}
 
-   .. image:: {{ github_project_root }}/workflows/Tests/badge.svg?branch={{ cookiecutter.main_branch }}
+   .. image:: {{ github_project_root }}/actions/workflows/test.yml/badge.svg?branch={{ cookiecutter.main_branch }}
       :alt: Tests
       :target: {{ github_project_root }}/actions?query=workflow%3ATests
 
@@ -87,18 +87,16 @@ Welcome to {{ cookiecutter.project_name }}'s documentation!
 
 .. toctree::
    :maxdepth: 2
+   :caption: API Reference
+
+   api
+
+.. toctree::
+   :maxdepth: 2
    :caption: Development
 
    contributing
    authors
-   history
-
-.. Reference (information oriented):
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Reference
-
-   API of the {{ cookiecutter.project_name }} package <API/{{ cookiecutter.project_slug }}>
+   changelog
 
 * :ref:`modindex`

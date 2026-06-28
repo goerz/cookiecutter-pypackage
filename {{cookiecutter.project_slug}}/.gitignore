@@ -69,6 +69,9 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+{%- if cookiecutter.sphinx_docs == 'y' and cookiecutter.markdown_docs == 'y' %}
+docs/sources/apidocs/
+{%- endif %}
 
 # PyBuilder
 target/
@@ -99,6 +102,7 @@ celerybeat-schedule
 # Environments
 .env
 .venv
+uv.lock
 env/
 venv/
 ENV/

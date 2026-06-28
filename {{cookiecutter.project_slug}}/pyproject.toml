@@ -1,0 +1,175 @@
+[build-system]
+requires = ["uv_build>=0.9,<0.10"]
+build-backend = "uv_build"
+
+{%- set license_classifiers = {
+    'MIT license': 'License :: OSI Approved :: MIT License',
+    'BSD license': 'License :: OSI Approved :: BSD License',
+    'ISC license': 'License :: OSI Approved :: ISC License (ISCL)',
+    'Apache Software License 2.0': 'License :: OSI Approved :: Apache Software License',
+    'GNU General Public License v3': 'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'
+} %}
+
+[project]
+name = "{{ cookiecutter.project_slug }}"
+version = "{{ cookiecutter.version }}"
+description = "{{ cookiecutter.project_short_description }}"
+readme = "README.md"
+requires-python = ">={% if cookiecutter.support_py310 == 'y' %}3.10{% elif cookiecutter.support_py311 == 'y' %}3.11{% elif cookiecutter.support_py312 == 'y' %}3.12{% elif cookiecutter.support_py313 == 'y' %}3.13{% elif cookiecutter.support_py314 == 'y' %}3.14{% else %}3{% endif %}"
+{%- if cookiecutter.open_source_license in license_classifiers %}
+license = { text = "{{ cookiecutter.open_source_license }}" }
+{%- endif %}
+authors = [
+    { name = "{{ cookiecutter.full_name.replace('\"', '\\\"') }}", email = "{{ cookiecutter.email }}" },
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+{%- if cookiecutter.open_source_license in license_classifiers %}
+    "{{ license_classifiers[cookiecutter.open_source_license] }}",
+{%- endif %}
+    "Natural Language :: English",
+{%- if cookiecutter.support_py310 == 'y' %}
+    "Programming Language :: Python :: 3.10",
+{%- endif %}
+{%- if cookiecutter.support_py311 == 'y' %}
+    "Programming Language :: Python :: 3.11",
+{%- endif %}
+{%- if cookiecutter.support_py312 == 'y' %}
+    "Programming Language :: Python :: 3.12",
+{%- endif %}
+{%- if cookiecutter.support_py313 == 'y' %}
+    "Programming Language :: Python :: 3.13",
+{%- endif %}
+{%- if cookiecutter.support_py314 == 'y' %}
+    "Programming Language :: Python :: 3.14",
+{%- endif %}
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}"
+
+[dependency-groups]
+dev = [
+    "pytest>=7",
+    "pytest-cov>=4",
+    "pytest-xdist>=3",
+    "packaging>=21",
+    "coverage>=7",
+    "coveralls>=3",
+    "ipdb>=0.13",
+]
+{%- if cookiecutter.sphinx_docs == 'y' %}
+docs = [
+    "sphinx>=7",
+    "sphinx_rtd_theme>=2",
+    "sphinx-copybutton>=0.5",
+    "sphinx-autobuild>=2024.2",
+    "myst-parser>=2",
+    "docs-versions-menu>=0.6",
+    "gitpython>=3",
+{%- if cookiecutter.markdown_docs == 'y' %}
+    "sphinx-autodoc2>=0.5",
+{%- else %}
+    "sphinx-autodoc-typehints>=1.25",
+{%- endif %}
+]
+{%- endif %}
+lint = [
+    "black>=24",
+    "isort>=5",
+    "flake8>=6",
+    "flake8-pyproject>=1",
+    "pylint>=3",
+    "pre-commit>=3.5",
+]
+{%- if cookiecutter.on_pypi == 'y' %}
+release = [
+    "click>=8",
+    "gitpython>=3",
+    "packaging>=21",
+    "pytest>=7",
+]
+{%- endif %}
+
+[tool.black]
+line-length = {{ cookiecutter.linelength }}
+skip-string-normalization = true
+
+[tool.isort]
+known_first_party = ["{{ cookiecutter.project_slug }}"]
+force_single_line = false
+lines_after_imports = 2
+line_length = {{ cookiecutter.linelength }}
+use_parentheses = true
+multi_line_output = 3
+include_trailing_comma = true
+skip_glob = ["src/*/__init__.py"]
+
+[tool.flake8]
+exclude = ["docs"]
+max-line-length = {{ cookiecutter.linelength }}
+extend-ignore = [
+    # See https://github.com/PyCQA/pycodestyle/issues/373
+    "E203",
+    # don't care about "ambiguous variable names"
+    "E741",
+    # when I use lambdas, I know what I'm doing
+    "E731",
+]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+
+[tool.coverage.run]
+relative_files = true
+source = ["{{ cookiecutter.project_slug }}"]
+
+[tool.pylint."messages control"]
+disable = [
+    "invalid-name",
+    "unidiomatic-typecheck",
+    "consider-iterating-dictionary",
+    "consider-using-enumerate",
+    "too-many-lines",
+    "multiple-statements",
+    "wrong-spelling-in-comment",
+    "wrong-spelling-in-docstring",
+    "len-as-condition",
+    "import-error",
+    "too-many-function-args",
+    "assignment-from-none",
+    "too-many-instance-attributes",
+    "too-few-public-methods",
+    "too-many-public-methods",
+    "too-many-return-statements",
+    "too-many-branches",
+    "too-many-arguments",
+    "too-many-locals",
+    "too-many-statements",
+    "too-many-boolean-expressions",
+    "too-many-nested-blocks",
+    "exec-used",
+    "eval-used",
+    "using-constant-test",
+    "protected-access",
+    "global-statement",
+    "unused-argument",
+    "no-else-return",
+    "ungrouped-imports",
+    "unnecessary-lambda",
+]
+
+[tool.pylint.format]
+max-line-length = {{ cookiecutter.linelength }}
+
+[tool.pylint.design]
+max-args = 10
+max-attributes = 15
+max-bool-expr = 10
+max-branches = 20
+max-locals = 30
+max-returns = 10
+max-statements = 200
+max-public-methods = 40

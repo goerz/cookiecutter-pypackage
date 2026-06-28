@@ -1,7 +1,6 @@
 """Tests for `python_boilerplate` package."""
 
-import pytest
-from pkg_resources import parse_version
+from packaging.version import parse as parse_version
 
 import python_boilerplate
 

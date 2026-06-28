@@ -17,7 +17,7 @@ if not re.match(MODULE_REGEX, module_name):
     )
     sys.exit(1)  # cancel project
 
-executables = ['tox', 'python{{ cookiecutter.main_python }}']
+executables = ['uv', 'make']
 for executable in executables:
     if not shutil.which(executable):
         print('WARNING: You do not have the %s executable.' % executable)

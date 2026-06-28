@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
 
   run_tests:
-    name:  Run tests on ${{ '{{' }} matrix.os {{ '}}' }} for ${{ '{{' }} matrix.python {{ '}}' }}
+    name: ${{ '{{' }} matrix.title || matrix.os {{ '}}' }}
     runs-on: ${{ '{{' }} matrix.os {{ '}}' }}
     strategy:
       fail-fast: false
@@ -13,49 +13,31 @@ jobs:
         include:
           - title: Codestyle and Tests
             os: ubuntu-latest
-            python: {{ cookiecutter.main_python }}
-            commands: |
-              tox -e run-blackcheck,run-isortcheck
-              tox -e py{{ cookiecutter.main_python | replace(".", "")}}-test
+            codestyle: true
             coverage: true
           - os: windows-latest
-            python: {{ cookiecutter.main_python }}
-            commands: |
-              tox -e py{{ cookiecutter.main_python | replace(".", "")}}-test
             coverage: true
           - title: MacOS
             os: macos-latest
-            python: {{ cookiecutter.main_python }}
-            commands: |
-              tox -e py{{ cookiecutter.main_python | replace(".", "")}}-test
             coverage: true
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v2
-        name: Install Python ${{ '{{' }} matrix.python {{ '}}' }}
-        with:
-          python-version: ${{ '{{' }} matrix.python {{ '}}' }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.3.1
 
-      - name: Install Tox
-        run: python -m pip install tox
+      - name: Check code style
+        if: matrix.codestyle == true
+        run: make black-check isort-check check-changelog
 
-      - name: Run test commands
-        run: ${{ '{{' }} matrix.commands {{ '}}' }}
-
-      - name: Determine tox runcmd environment
-        shell: python
-        id: tox_runcmd
-        run: |
-          import sys
-          print("::set-output name=toxenv::py%d%d-runcmd" % sys.version_info[0:2])
+      - name: Run tests
+        run: make test
 
       - name: Convert coverage data to xml
         if: matrix.coverage == true
-        run: |
-          tox -e ${{ '{{' }} steps.tox_runcmd.outputs.toxenv {{ '}}' }} -- python -m coverage xml
+        run: make coverage-xml
 
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v7
         if: matrix.coverage == true
         with:
           verbose: false

@@ -1,6 +1,9 @@
 """Top-level package for Python Boilerplate."""
 
-__version__ = '0.1.0-dev'
+from importlib.metadata import version
+
+
+__version__ = version("python_boilerplate")
 
 # All members whose name does not start with an underscore must be listed
 # either in __all__ or in __private__

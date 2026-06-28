@@ -1,0 +1,134 @@
+name: Docs
+
+on: [push]
+
+jobs:
+
+  build_docs:
+    name: Build Sphinx docs
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.3.1
+
+      - name: Generate HTML Documentation
+        run: make docs
+
+      - name: Get the version
+        id: get_version
+        shell: python
+        run: |
+          import os
+          from pathlib import Path
+          version = "unknown"
+          with (Path("pyproject.toml")).open(encoding='utf8') as in_fh:
+              for line in in_fh:
+                  if line.startswith('version'):
+                      version = line.split('=')[1].strip()[1:-1]
+                      break
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out_fh:
+              out_fh.write("version=%s\n" % version)
+
+      - name: Zip the HTML documentation
+        run: uvx --from zip-files zip-folder --debug --auto-root --outfile "python_boilerplate-docs-${{ steps.get_version.outputs.version }}.zip" docs/_build/html
+
+
+      - uses: actions/upload-artifact@v7
+        name: Upload documentation artifacts
+        with:
+          name: python_boilerplate-docs
+          # We need at least two files in the artifact to avoid a weird
+          # double-zip file. Hence README.md
+          path: |
+            README.md
+            ./python_boilerplate-docs-${{ steps.get_version.outputs.version }}.*
+
+
+  deploy_gh_pages:
+    name: Deploy documentation to gh-pages
+    if: always() && needs.build_docs.result == 'success' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/'))
+    runs-on: ubuntu-latest
+    needs: [build_docs]
+    permissions:
+      contents: write
+    steps:
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.3.1
+
+      - name: Get branch name
+        shell: bash
+        run: |
+          echo ${{ github.ref }}
+          echo "BRANCH_NAME=$(echo ${GITHUB_REF##*/} | tr / -)" >> $GITHUB_ENV
+          cat $GITHUB_ENV
+
+      - uses: actions/checkout@v7
+        name: Check out gh-pages branch (full history)
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v8
+        name: Download python_boilerplate-docs artifact
+        with:
+          name: python_boilerplate-docs
+          path: _python_boilerplate_docs
+
+      - name: Unzip html documentation
+        working-directory: _python_boilerplate_docs
+        shell: bash
+        run: |
+          unzip *.zip -d _unzip
+          mv _unzip/* _unzip/${{ env.BRANCH_NAME }}
+
+      - name: Rsync html documentation into place
+        run: rsync -av --delete _python_boilerplate_docs/_unzip/${{ env.BRANCH_NAME }}/ ./${{ env.BRANCH_NAME }}/
+
+      - name: Remove artifact files
+        shell: bash
+        run: rm -rf _python_boilerplate_docs
+
+      - name: Run docs-versions-menu
+        run: uvx docs-versions-menu
+
+      - name: Get the previous commit message
+        id: get_previous_commit
+        run: |
+          git log --format=%B -n 1 | tee .git/_github_actions_commit_msg
+          echo "log=$(cat .git/_github_actions_commit_msg)" >> $GITHUB_OUTPUT
+          echo "lastline=$(cat .git/_github_actions_commit_msg | grep -v '^$' | tail -n1)" >> $GITHUB_OUTPUT
+          echo "author=$(git log --format=%an -n 1)" >> $GITHUB_OUTPUT
+
+      - name: Set git configuration
+        shell: bash
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+      - name: Commit changes
+        shell: bash
+        run: |
+          echo "Committing to gh-pages"
+          echo "# GIT ADD"
+          git add -A --verbose
+          echo "# GIT STATUS"
+          git status
+          echo "# GIT COMMIT"
+          if [[ "${{ steps.get_previous_commit.outputs.author }}" == "github-actions"* && "${{ steps.get_previous_commit.outputs.lastline }}" == *"${{ github.ref }}"* ]];
+          then
+            # we ammend if the previous commit was down by Github Actions and was based on the same branch/tag name
+            echo "Amending previous commit"
+            echo "Deployed from commit ${GITHUB_SHA} (${GITHUB_REF})" >> .git/_github_actions_commit_msg
+            git commit --verbose --amend -F .git/_github_actions_commit_msg
+          else
+            echo "Making new commit"
+            git commit --verbose -m "Auto-update from Github Actions Workflow" -m "Deployed from commit ${GITHUB_SHA} (${GITHUB_REF})"
+          fi
+          git log -n 1
+
+      - name: Push changes
+        run: git push --verbose --force

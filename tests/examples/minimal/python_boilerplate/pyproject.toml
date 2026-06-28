@@ -1,0 +1,125 @@
+[build-system]
+requires = ["uv_build>=0.9,<0.10"]
+build-backend = "uv_build"
+
+[project]
+name = "python_boilerplate"
+version = "0.1.0-dev"
+description = "Python Boilerplate contains all the boilerplate you need to create a Python package."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "BSD license" }
+authors = [
+    { name = "Michael Goerz", email = "mail@michaelgoerz.net" },
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.10",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/goerz/python_boilerplate"
+
+[dependency-groups]
+dev = [
+    "pytest>=7",
+    "pytest-cov>=4",
+    "pytest-xdist>=3",
+    "packaging>=21",
+    "coverage>=7",
+    "coveralls>=3",
+    "ipdb>=0.13",
+]
+lint = [
+    "black>=24",
+    "isort>=5",
+    "flake8>=6",
+    "flake8-pyproject>=1",
+    "pylint>=3",
+    "pre-commit>=3.5",
+]
+
+[tool.black]
+line-length = 79
+skip-string-normalization = true
+
+[tool.isort]
+known_first_party = ["python_boilerplate"]
+force_single_line = false
+lines_after_imports = 2
+line_length = 79
+use_parentheses = true
+multi_line_output = 3
+include_trailing_comma = true
+skip_glob = ["src/*/__init__.py"]
+
+[tool.flake8]
+exclude = ["docs"]
+max-line-length = 79
+extend-ignore = [
+    # See https://github.com/PyCQA/pycodestyle/issues/373
+    "E203",
+    # don't care about "ambiguous variable names"
+    "E741",
+    # when I use lambdas, I know what I'm doing
+    "E731",
+]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+
+[tool.coverage.run]
+relative_files = true
+source = ["python_boilerplate"]
+
+[tool.pylint."messages control"]
+disable = [
+    "invalid-name",
+    "unidiomatic-typecheck",
+    "consider-iterating-dictionary",
+    "consider-using-enumerate",
+    "too-many-lines",
+    "multiple-statements",
+    "wrong-spelling-in-comment",
+    "wrong-spelling-in-docstring",
+    "len-as-condition",
+    "import-error",
+    "too-many-function-args",
+    "assignment-from-none",
+    "too-many-instance-attributes",
+    "too-few-public-methods",
+    "too-many-public-methods",
+    "too-many-return-statements",
+    "too-many-branches",
+    "too-many-arguments",
+    "too-many-locals",
+    "too-many-statements",
+    "too-many-boolean-expressions",
+    "too-many-nested-blocks",
+    "exec-used",
+    "eval-used",
+    "using-constant-test",
+    "protected-access",
+    "global-statement",
+    "unused-argument",
+    "no-else-return",
+    "ungrouped-imports",
+    "unnecessary-lambda",
+]
+
+[tool.pylint.format]
+max-line-length = 79
+
+[tool.pylint.design]
+max-args = 10
+max-attributes = 15
+max-bool-expr = 10
+max-branches = 20
+max-locals = 30
+max-returns = 10
+max-statements = 200
+max-public-methods = 40

@@ -1,5 +1,8 @@
 """This file is automatically executed by pytest when testing anything in the
 docs folder"""
+
+collect_ignore = ['conf.py']
+
 import pytest
 
 import {{ cookiecutter.project_slug }}

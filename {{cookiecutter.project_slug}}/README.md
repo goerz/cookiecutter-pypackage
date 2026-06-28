@@ -2,18 +2,18 @@
 {% set github_project_root =  "https://github.com/" ~ cookiecutter.github_username  ~ "/" ~ cookiecutter.project_slug  %}
 [![Source code on Github](https://img.shields.io/badge/{{ cookiecutter.github_username | replace("-","--") | replace("_", "__") }}-{{ cookiecutter.project_slug | replace("-","--") | replace("_", "__") }}-blue.svg?logo=github)][Github]
 {%- if cookiecutter.on_pypi == 'y' %}
-[![PyPI](https://img.shields.io/pypi/v/{{ cookiecutter.project_slug }}.svg)](https://pypi.python.org/pypi/{{ cookiecutter.project_slug }})
+[![PyPI](https://img.shields.io/pypi/v/{{ cookiecutter.project_slug }})](https://pypi.python.org/pypi/{{ cookiecutter.project_slug }})
 {%- else %}
 <!--Not on PyPI-->
 {%- endif %}
 {%- if cookiecutter.sphinx_docs == 'y' %}
 [![Documentation](https://img.shields.io/badge/docs-gh--pages-blue.svg)][docs]
-[![Docs]({{ github_project_root }}/workflows/Docs/badge.svg?branch={{ cookiecutter.main_branch }})]({{ github_project_root }}/actions?query=workflow%3ADocs)
+[![Docs]({{ github_project_root }}/actions/workflows/docs.yml/badge.svg?branch={{ cookiecutter.main_branch }})]({{ github_project_root }}/actions?query=workflow%3ADocs)
 {%- else %}
 <!--No online documentation-->
 <!--No documentation workflow-->
 {%- endif %}
-[![Tests]({{ github_project_root }}/workflows/Tests/badge.svg?branch={{ cookiecutter.main_branch }})]({{ github_project_root }}/actions?query=workflow%3ATests)
+[![Tests]({{ github_project_root }}/actions/workflows/test.yml/badge.svg?branch={{ cookiecutter.main_branch }})]({{ github_project_root }}/actions?query=workflow%3ATests)
 [![Coverage](https://codecov.io/gh/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/branch/{{ cookiecutter.main_branch }}/graph/badge.svg)](https://codecov.io/gh/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }})
 {%- if cookiecutter.open_source_license == 'MIT license' %}
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
@@ -39,26 +39,27 @@ You can read the full documentation [online][docs].
 ## Installation
 
 {%- if cookiecutter.on_pypi == 'y' %}
-To install the latest released version of {{ cookiecutter.project_name }}, run this command in your terminal:
+To install the latest released version of {{ cookiecutter.project_name }}:
 
 ```
 pip install {{ cookiecutter.project_slug }}
 ```
 
-This is the preferred method to install {{ cookiecutter.project_name }}, as it will always install the most recent stable release.
-
-If you don't have [pip](https://pip.pypa.io) installed, the [Python installation guide](http://docs.python-guide.org/en/latest/starting/installation/), respectively the [Python Packaging User Guide](https://packaging.python.org/tutorials/installing-packages/) can guide you through the process.
-{%endif %}
-
-To install the latest development version of {{ cookiecutter.project_name }} from [Github][].
+or, if you use [uv](https://docs.astral.sh/uv/):
 
 ```
-pip install git+https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}.git@{{ cookiecutter.main_branch }} }}#egg={{ cookiecutter.project_slug }}
+uv add {{ cookiecutter.project_slug }}
+```
+{%endif %}
+
+To install the latest development version from [Github][]:
+
+```
+pip install git+https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}.git@{{ cookiecutter.main_branch }}#egg={{ cookiecutter.project_slug }}
 ```
 
 {% if cookiecutter.on_pypi == 'n' %}
-
-**Note: ** {{ cookiecutter.project_name }} is currently not released on the [Python Package Index](https://pypi.org), so you will not be able to install it with `pip install <package name>`.
+**Note:** {{ cookiecutter.project_name }} is currently not released on the [Python Package Index](https://pypi.org), so you will not be able to install it with `pip install <package name>`.
 
 {%-endif%}
 
@@ -70,4 +71,21 @@ To use {{ cookiecutter.project_name }} in a Python project:
 import {{ cookiecutter.project_slug }}
 ```
 
+## Development
+
+The project uses [uv](https://docs.astral.sh/uv/) to manage the development environment and [`make`](https://www.gnu.org/software/make/) as a task runner. After cloning the repository, run
+
+```
+make develop
+```
+
+to create a virtual environment with all development dependencies. Run `make help` for an overview of available targets, and see [CONTRIBUTING.md][] for full contributing guidelines.
+
+To set a debugger breakpoint, use Python's built-in `breakpoint()`. The development environment includes [ipdb](https://github.com/gotcha/ipdb); activate it by setting the environment variable:
+
+```
+export PYTHONBREAKPOINT=ipdb.set_trace
+```
+
 [Github]: {{ github_project_root }}
+[CONTRIBUTING.md]: {{ github_project_root }}/blob/{{ cookiecutter.main_branch }}/CONTRIBUTING.md

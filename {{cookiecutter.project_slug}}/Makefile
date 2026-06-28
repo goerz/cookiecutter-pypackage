@@ -1,13 +1,34 @@
-.PHONY: help bootstrap clean clean-build clean-test clean-venv flake8-check pylint-check test test35 test36 test37 test38 test39 {%- if cookiecutter.sphinx_docs == 'y' %} docs clean-docs{% endif %} black-check black isort-check isort coverage {%- if cookiecutter.on_pypi == 'y' %} test-upload upload release{% endif %} dist dist-check
-	
+# Makefile for {{ cookiecutter.project_slug }} development, built around uv.
+#
+# Run `make help` for an overview of the available targets.
+
+.PHONY: help develop test test-lowest coverage coverage-xml{% if cookiecutter.sphinx_docs == 'y' %} docs{% endif %} \
+        black black-check isort isort-check flake8 pylint lint pre-commit \
+        check-changelog changelog \
+        dist dist-check{% if cookiecutter.on_pypi == 'y' %} test-upload upload release{% endif %} \
+        upgrade clean distclean
+
 .DEFAULT_GOAL := help
 
-TOXOPTIONS ?=
-TOXINI ?= tox.ini
-TOX = tox -c $(TOXINI) $(TOXOPTIONS)
+# Python version for the development environment. Override on the command line,
+# e.g. `make PYTHON=3.11 test`. uv downloads the interpreter if it is missing.
+# If unset, uv picks the highest Python compatible with requires-python.
+ifdef PYTHON
+  PYTHON_ARG := --python $(PYTHON)
+endif
 
-# empty TESTS delegates to TOXINI
-TESTS ?=
+# Dependency resolution strategy. Use `make test-lowest` to verify the project
+# against the lowest declared dependency versions.
+RESOLUTION ?= highest
+
+# All development tooling lives in dependency groups (see pyproject.toml).
+# `uv run` transparently creates and syncs the environment before running, and
+# installs this project *editable*, so every target below picks up uncommitted
+# source changes immediately, with no rebuild or reinstall step.
+UV := uv run $(PYTHON_ARG) --resolution $(RESOLUTION) --all-groups
+
+# Locations passed to the linters and formatters.
+SOURCES ?= src tests
 
 define PRINT_HELP_PYSCRIPT
 import re, sys
@@ -23,102 +44,83 @@ export PRINT_HELP_PYSCRIPT
 help:  ## show this help
 	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
-bootstrap: ## verify that tox is available and pre-commit hooks are active
-	python scripts/bootstrap.py
+develop:  ## create or sync the development environment
+	uv sync $(PYTHON_ARG) --resolution $(RESOLUTION) --all-groups
 
-clean: ## remove all build, {%- if cookiecutter.sphinx_docs == 'y' %} docs,{% endif %} test, and coverage artifacts, as well as tox environments
-	python scripts/clean.py all
+test:  ## run the test suite
+	$(UV) pytest -vvv --doctest-modules --doctest-glob="*.rst" --doctest-glob="*.md" --cov={{ cookiecutter.project_slug }} --durations=10 -x -s src tests{% if cookiecutter.sphinx_docs == 'y' %} docs{% endif %} README.md CONTRIBUTING.md
 
-clean-build: ## remove build artifacts
-	python scripts/clean.py build
+test-lowest:  ## run the test suite against the lowest supported Python and dependencies
+	$(MAKE) PYTHON={% if cookiecutter.support_py310 == 'y' %}3.10{% elif cookiecutter.support_py311 == 'y' %}3.11{% elif cookiecutter.support_py312 == 'y' %}3.12{% elif cookiecutter.support_py313 == 'y' %}3.13{% elif cookiecutter.support_py314 == 'y' %}3.14{% endif %} RESOLUTION=lowest-direct test
 
-clean-tests: ## remove test and coverage artifacts
-	python scripts/clean.py tests
-
-clean-venv: ## remove tox virtual environments
-	python scripts/clean.py venv
-
-{%- if cookiecutter.sphinx_docs == 'y' %}
-
-clean-docs: ## remove documentation artifacts
-	python scripts/clean.py docs
-
-{%- endif %}
-
-flake8-check: bootstrap ## check style with flake8
-	$(TOX) -e run-flake8
-
-pylint-check: bootstrap ## check style with pylint
-	$(TOX) -e run-pylint
-
-{% set testenvs = [] %}
-{%- if cookiecutter.support_py36 == "y" and testenvs.append("py36-test") %}{% endif %}
-{%- if cookiecutter.support_py37 == "y" and testenvs.append("py37-test") %}{% endif %}
-{%- if cookiecutter.support_py38 == "y" and testenvs.append("py38-test") %}{% endif %}
-{%- if cookiecutter.support_py39 == "y" and testenvs.append("py39-test") %}{% endif %}
-test: bootstrap ## run tests for all supported Python versions
-	$(TOX) -e {{ testenvs | join(",") }} -- $(TESTS)
-
-test35: bootstrap ## run tests for Python 3.5
-	$(TOX) -e py35-test -- $(TESTS)
-
-test36: bootstrap ## run tests for Python 3.6
-	$(TOX) -e py36-test -- $(TESTS)
-
-test37: bootstrap ## run tests for Python 3.7
-	$(TOX) -e py37-test -- $(TESTS)
-
-test38: bootstrap ## run tests for Python 3.8
-	$(TOX) -e py38-test -- $(TESTS)
-
-test39: bootstrap ## run tests for Python 3.9
-	$(TOX) -e py39-test -- $(TESTS)
-
-{%- if cookiecutter.sphinx_docs == 'y' %}
-
-docs: bootstrap ## generate Sphinx HTML documentation, including API docs
-	$(TOX) -e docs
-	@echo "open docs/_build/html/index.html"
-
-{%- endif %}
-
-black-check: bootstrap ## Check all src and test files for complience to "black" code style
-	$(TOX) -e run-blackcheck
-
-black: bootstrap ## Apply 'black' code style to all src and test files
-	$(TOX) -e run-black
-
-isort-check: bootstrap ## Check all src and test files for correctly sorted imports
-	$(TOX) -e run-isortcheck
-
-isort: bootstrap ## Sort imports in all src and test files
-	$(TOX) -e run-isort
-
-coverage: test37  ## generate coverage report in ./htmlcov
-	$(TOX) -e coverage
+coverage:  ## generate coverage report in ./htmlcov
+	$(UV) pytest --cov={{ cookiecutter.project_slug }} --cov-report=term --cov-report=html src tests
 	@echo "open htmlcov/index.html"
 
-{%- if cookiecutter.on_pypi == 'y' %}
+coverage-xml:  ## convert .coverage data to coverage.xml (for CI upload)
+	$(UV) coverage xml
+{%- if cookiecutter.sphinx_docs == 'y' %}
 
-test-upload: bootstrap clean-build dist ## package and upload a release to test.pypi.org
-	$(TOX) -e run-cmd -- twine check dist/*
-	$(TOX) -e run-cmd -- twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-
-upload: bootstrap clean-build dist ## package and upload a release to pypi.org
-	$(TOX) -e run-cmd -- twine check dist/*
-	$(TOX) -e run-cmd -- twine upload dist/*
-
-release: bootstrap ## Create a new version, package and upload it
-	python{{ cookiecutter.main_python }} -m venv .venv/release
-	.venv/release/bin/python -m pip install click gitpython pytest
-	.venv/release/bin/python ./scripts/release.py
-
+docs:  ## generate Sphinx HTML documentation, including API docs
+	$(UV) sphinx-build -W -b html docs/sources docs/_build/html
+	@echo "open docs/_build/html/index.html"
 {%- endif %}
 
-dist: bootstrap ## builds source and wheel package
-	$(TOX) -e run-cmd -- python setup.py sdist
-	$(TOX) -e run-cmd -- python setup.py bdist_wheel
+black:  ## apply 'black' code style to all src and test files
+	$(UV) black $(SOURCES)
+
+black-check:  ## check all src and test files for compliance to 'black' code style
+	$(UV) black --check --diff $(SOURCES)
+
+isort:  ## sort imports in all src and test files
+	$(UV) isort $(SOURCES)
+
+isort-check:  ## check all src and test files for correctly sorted imports
+	$(UV) isort --check-only --diff $(SOURCES)
+
+flake8:  ## check style with flake8
+	$(UV) flake8 $(SOURCES)
+
+pylint:  ## check the code with pylint
+	$(UV) pylint src
+
+lint: black-check isort-check flake8 pylint check-changelog  ## run all linters
+
+check-changelog:  ## validate the reference links in CHANGELOG.md (no network)
+	python scripts/check_changelog.py
+
+changelog:  ## validate CHANGELOG.md and add any missing issue/PR link targets
+	python scripts/check_changelog.py --fix
+
+pre-commit:  ## install the pre-commit git hooks
+	$(UV) pre-commit install
+
+dist:  ## build a source distribution and wheel into ./dist
+	uv build
 	ls -l dist
 
-dist-check: bootstrap ## Check all dist files for correctness
-	$(TOX) -e run-cmd -- twine check dist/*
+dist-check: dist  ## check all dist files for correctness
+	uvx twine check dist/*
+{%- if cookiecutter.on_pypi == 'y' %}
+
+test-upload: dist-check  ## package and upload a release to test.pypi.org
+	uvx twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+upload: dist-check  ## package and upload a release to pypi.org
+	uvx twine upload dist/*
+
+release:  ## create a new version, package and upload it
+	$(UV) python scripts/release.py
+{%- endif %}
+
+upgrade:  ## upgrade locked dependency versions to the latest compatible release
+	uv lock --upgrade
+
+clean:  ## remove build, test, and documentation artifacts
+	rm -rf build dist .eggs *.egg-info
+	rm -rf .pytest_cache .coverage htmlcov .mypy_cache .ruff_cache
+	rm -rf docs/_build{% if cookiecutter.sphinx_docs == 'y' and cookiecutter.markdown_docs == 'y' %} docs/sources/apidocs{% endif %}
+	find . -type d -name __pycache__ -exec rm -rf {} +
+
+distclean: clean  ## remove all generated files, including the .venv environments
+	rm -rf .venv uv.lock

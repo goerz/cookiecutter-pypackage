@@ -1,7 +1,5 @@
 codecov:
   require_ci_to_pass: yes
-  notify:
-    after_n_builds: 11
 
 coverage:
   precision: 1
@@ -13,6 +11,9 @@ coverage:
         target: auto
         threshold: 1%
         base: auto
+    patch:
+      default:
+        target: 85%
 
 parsers:
   gcov:
@@ -26,4 +27,3 @@ comment:
   layout: "diff,files,footer"
   behavior: default
   require_changes: no
-  after_n_builds: 11

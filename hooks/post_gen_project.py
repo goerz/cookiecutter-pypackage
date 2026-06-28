@@ -22,10 +22,21 @@ if __name__ == '__main__':
     if '{{ cookiecutter.sphinx_docs }}' == 'n':
         remove_folder('docs')
         remove_file(os.path.join(".github", "workflows", "docs.yml"))
+    elif '{{ cookiecutter.markdown_docs }}' == 'y':
+        # Markdown-only docs: drop the reStructuredText sources. ("api" only
+        # exists as .rst; the Markdown path builds its API page with autodoc2.)
+        for name in (
+            'index', 'readme', 'contributing', 'authors', 'changelog', 'api'
+        ):
+            remove_file(os.path.join('docs', 'sources', name + '.rst'))
+    else:
+        # reStructuredText docs: drop the Markdown sources.
+        for name in (
+            'index', 'readme', 'contributing', 'authors', 'changelog'
+        ):
+            remove_file(os.path.join('docs', 'sources', name + '.md'))
     if ('{{ cookiecutter.on_pypi }}' != 'y'):
         remove_file(os.path.join('scripts', 'release.py'))
-        if len(os.listdir('scripts')) == 0:
-            remove_folder('scripts')
     if '{{ cookiecutter.interactive_postsetup }}' == 'y':
         try:
             response = input(

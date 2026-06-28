@@ -1,0 +1,17 @@
+"""Tests for `python_boilerplate` package."""
+
+from packaging.version import parse as parse_version
+
+import python_boilerplate
+
+
+def test_valid_version():
+    """Check that the package defines a valid ``__version__``."""
+    v_curr = parse_version(python_boilerplate.__version__)
+    v_orig = parse_version("0.1.0-dev")
+    assert v_curr >= v_orig
+
+
+def test_hello_world():
+    """Check the example ``hello_world`` function."""
+    assert python_boilerplate.hello_world("Alice") == "Hello, Alice!"

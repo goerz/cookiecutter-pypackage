@@ -2,21 +2,22 @@
 """Automation script for making a release. Must be run from the root for the
 repository"""
 # Note: Version scheme according to https://www.python.org/dev/peps/pep-0440
+import datetime
 import json
 import os
 import re
 import shutil
 import sys
+import tempfile
 import urllib.error
 import urllib.parse
 import urllib.request
-from os.path import join
 from subprocess import DEVNULL, CalledProcessError, run
 
 import click
 import git
 import pytest
-from pkg_resources import parse_version
+from packaging.version import parse as parse_version
 
 
 RX_VERSION = re.compile(
@@ -31,8 +32,8 @@ def make_release(package_name):
     click.confirm("Do you want to make a release?", abort=True)
     check_git_clean()
     new_version = ask_for_release_version(package_name)
-    set_version(join('.', 'src', package_name, '__init__.py'), new_version)
-    edit_history(new_version)
+    set_version('pyproject.toml', new_version)
+    edit_changelog(new_version)
     while not check_dist():
         click.confirm(
             "Fix errors manually! Continue?", default=True, abort=True
@@ -47,9 +48,8 @@ def make_release(package_name):
     make_upload(test=False)
     make_and_push_tag(new_version)
     next_dev_version = new_version + '+dev'
-    set_version(
-        join('.', 'src', package_name, '__init__.py'), next_dev_version
-    )
+    set_version('pyproject.toml', next_dev_version)
+    add_unreleased_heading()
     make_next_dev_version_commit(next_dev_version)
 
 
@@ -92,7 +92,7 @@ def get_version(filename):
     """Extract the package version, as a str"""
     with open(filename) as in_fh:
         for line in in_fh:
-            if line.startswith('__version__'):
+            if line.startswith('version'):
                 return line.split('=')[1].strip()[1:-1]
     raise ReleaseError("Cannot extract version from %s" % filename)
 
@@ -244,7 +244,7 @@ def ask_for_release_version(package_name):
 
     The version number is checked to be a valid next release
     """
-    dev_version = get_version(join('.', 'src', package_name, '__init__.py'))
+    dev_version = get_version('pyproject.toml')
     proposed_version = propose_next_version(dev_version)
     released_versions = list_versions(package_name)
     new_version = click.prompt(
@@ -259,15 +259,15 @@ def ask_for_release_version(package_name):
 
 
 def set_version(filename, version):
-    """Set the package version (in main __init__.py)"""
+    """Set the package version (in pyproject.toml)"""
     shutil.copyfile(filename, filename + '.bak')
     click.echo("Modifying %s to set version %s" % (filename, version))
     with open(filename + '.bak') as in_fh, open(filename, 'w') as out_fh:
         found_version_line = False
         for line in in_fh:
-            if line.startswith('__version__'):
+            if line.startswith('version'):
                 found_version_line = True
-                line = line.split('=')[0].rstrip() + " = '" + version + "'\n"
+                line = line.split('=')[0].rstrip() + ' = "' + version + '"\n'
             out_fh.write(line)
     if get_version(filename) == version:
         os.remove(filename + ".bak")
@@ -276,22 +276,180 @@ def set_version(filename, version):
         shutil.copyfile(filename + ".bak", filename)
         msg = "Failed to set version in %s (restored original)" % filename
         if not found_version_line:
-            msg += ". Does not contain a line starting with '__version__'."
+            msg += ". Does not contain a line starting with 'version'."
         raise ReleaseError(msg)
 
 
-def edit_history(version):
-    """Interactively edit HISTORY.md"""
-    click.echo(
-        "Edit HISTORY.md to add changelog and release date for %s" % version
+def get_changelog_repo_base(text):
+    """Return the ``https://github.com/<owner>/<repo>`` base for the project.
+
+    The base is extracted from the first ``https://github.com`` URL in a
+    reference-style link definition of CHANGELOG.md.
+    """
+    m = re.search(
+        r'^\[[^\]]+\]:\s*(https://github\.com/[^/\s]+/[^/\s]+)',
+        text,
+        re.MULTILINE,
     )
-    edit('HISTORY.md')
-    click.confirm("Is HISTORY.md up to date?", default=True, abort=True)
+    if m:
+        return m.group(1)
+    raise ReleaseError(
+        "Cannot determine the GitHub repository from CHANGELOG.md links"
+    )
+
+
+def prepare_changelog(version, filename='CHANGELOG.md', today=None):
+    """Turn the ``## [Unreleased]`` section into a release section.
+
+    Rename the topmost ``## [Unreleased]`` heading to ``## [v<version>] -
+    <YYYY-MM-DD>`` and update the reference-style version links at the bottom
+    of the file: point ``[Unreleased]`` at ``…/compare/v<version>..HEAD`` and
+    add a ``[v<version>]: …/releases/tag/v<version>`` definition.
+
+    The tagged release commit must not contain an ``## [Unreleased]`` section,
+    so no fresh heading is added here; `add_unreleased_heading` re-opens the
+    changelog in the subsequent ``+dev`` version-bump commit.
+
+    This is safe to re-run: if a ``## [v<version>]`` heading already exists,
+    the file is left unchanged.
+    """
+    if today is None:
+        today = datetime.date.today().isoformat()
+    with open(filename) as in_fh:
+        text = in_fh.read()
+
+    version_heading = "## [v%s]" % version
+    if version_heading in text:
+        click.echo(
+            "%s already has a %s section; leaving it unchanged"
+            % (filename, version_heading)
+        )
+        return
+
+    base = get_changelog_repo_base(text)
+
+    # Rename the top '## [Unreleased]' heading to the release heading. The
+    # fresh '## [Unreleased]' heading is intentionally *not* added here: the
+    # tagged release commit must not contain an '## [Unreleased]' section.
+    # `add_unreleased_heading` re-opens the changelog for the '+dev' commit.
+    heading_rx = re.compile(r'^##[ \t]+\[Unreleased\][ \t]*$', re.MULTILINE)
+    if not heading_rx.search(text):
+        raise ReleaseError(
+            "%s has no '## [Unreleased]' heading to release" % filename
+        )
+    text = heading_rx.sub(
+        "%s - %s" % (version_heading, today),
+        text,
+        count=1,
+    )
+
+    # Point '[Unreleased]' at the new compare range and add the release link.
+    link_rx = re.compile(r'^\[Unreleased\]:.*$', re.MULTILINE)
+    if not link_rx.search(text):
+        raise ReleaseError(
+            "%s has no '[Unreleased]' link definition" % filename
+        )
+    new_links = (
+        "[Unreleased]: %s/compare/v%s..HEAD\n" "[v%s]: %s/releases/tag/v%s"
+    ) % (base, version, version, base, version)
+    text = link_rx.sub(lambda _: new_links, text, count=1)
+
+    with open(filename, 'w') as out_fh:
+        out_fh.write(text)
+    click.echo(
+        "Updated %s: released [Unreleased] as %s - %s"
+        % (filename, version_heading, today)
+    )
+
+
+def add_unreleased_heading(filename='CHANGELOG.md'):
+    """Re-open the changelog for the next development cycle.
+
+    Insert a fresh empty ``## [Unreleased]`` heading above the topmost
+    ``## [vX.Y.Z]`` release heading. This runs for the ``+dev`` version-bump
+    commit, so the just-tagged release commit stays free of an
+    ``## [Unreleased]`` section.
+
+    No-op if an ``## [Unreleased]`` heading is already present.
+    """
+    with open(filename) as in_fh:
+        text = in_fh.read()
+
+    if re.search(r'^##[ \t]+\[Unreleased\][ \t]*$', text, re.MULTILINE):
+        click.echo(
+            "%s already has an '## [Unreleased]' heading; leaving it unchanged"
+            % filename
+        )
+        return
+
+    m = re.search(r'^##[ \t]+\[v[0-9]+\.[0-9]+\.[0-9]+\]', text, re.MULTILINE)
+    if not m:
+        raise ReleaseError(
+            "%s has no '## [vX.Y.Z]' heading to insert '## [Unreleased]' above"
+            % filename
+        )
+    text = text[: m.start()] + "## [Unreleased]\n\n" + text[m.start() :]
+
+    with open(filename, 'w') as out_fh:
+        out_fh.write(text)
+    click.echo(
+        "Re-opened %s with a fresh '## [Unreleased]' heading" % filename
+    )
+
+
+def extract_release_notes(version, filename='CHANGELOG.md'):
+    """Return the release notes for a version from CHANGELOG.md.
+
+    Extracts the body of the ``## [v<version>]`` section: everything between
+    that heading and the next ``##`` heading (or the reference-link definition
+    block at the bottom of the file), with surrounding blank lines stripped.
+    """
+    with open(filename) as in_fh:
+        lines = in_fh.read().splitlines()
+    heading_rx = re.compile(r'^##[ \t]+\[v%s\][ \t]' % re.escape(version))
+    definition_rx = re.compile(r'^\[[^\]]+\]:')
+    start = None
+    for i, line in enumerate(lines):
+        if heading_rx.match(line):
+            start = i + 1
+            break
+    if start is None:
+        raise ReleaseError(
+            "No '## [v%s]' section found in %s" % (version, filename)
+        )
+    body = []
+    for line in lines[start:]:
+        if line.startswith('## ') or definition_rx.match(line):
+            break
+        body.append(line)
+    notes = '\n'.join(body).strip()
+    if not notes:
+        raise ReleaseError(
+            "The '## [v%s]' section in %s is empty" % (version, filename)
+        )
+    return notes
+
+
+def edit_changelog(version):
+    """Prepare CHANGELOG.md for the release, then edit it interactively.
+
+    `prepare_changelog` does the mechanical transformation (renaming the
+    ``## [Unreleased]`` heading to the release heading and updating the version
+    links); the editor is opened afterwards so the release notes can be
+    reviewed and refined before the file is validated.
+    """
+    prepare_changelog(version)
+    click.echo(
+        "Review and refine the release notes for %s in CHANGELOG.md" % version
+    )
+    edit('CHANGELOG.md')
+    run(['make', 'check-changelog'], check=True)
+    click.confirm("Is CHANGELOG.md up to date?", default=True, abort=True)
 
 
 def check_dist():
     """Quietly make dist and check it. This is mainly to ensure that the README
-    and HISTORY metadata are well-formed"""
+    and CHANGELOG metadata are well-formed"""
     click.echo("Making and verifying dist and metadata...")
     try:
         run(['make', 'dist'], check=True, stdout=DEVNULL)
@@ -359,7 +517,7 @@ def make_upload(test=True):
 def push_release_commit():
     """Push local commits to origin."""
     click.confirm("Push release commit to origin?", default=True, abort=True)
-    run(['git', 'push', 'origin', 'master'], check=True)
+    run(['git', 'push', 'origin', '{{ cookiecutter.main_branch }}'], check=True)
     click.confirm(
         "Please check Continuous Integration success. Continue?",
         default=True,
@@ -368,31 +526,40 @@ def push_release_commit():
 
 
 def make_and_push_tag(version):
-    """Tag the current commit and push that tag to origin."""
+    """Tag the release commit and push that tag to origin.
+
+    The signed, annotated tag's message is built automatically from the
+    ``## [v<version>]`` section of CHANGELOG.md (a ``Release <version>`` title
+    followed by that section's release notes), so the notes never have to be
+    retyped. After the tag is pushed, a matching GitHub release is created from
+    the same notes.
+    """
+    tag = "v%s" % version
+    notes = extract_release_notes(version)
+    message = "Release %s\n\n%s\n" % (version, notes)
+    click.echo("Tag message for %s (from CHANGELOG.md):\n" % tag)
+    click.echo(message)
     click.confirm(
-        "Create signed tag v'%s' and push to origin?" % version,
+        "Create signed tag %s with this message and push to origin?" % tag,
         default=True,
         abort=True,
     )
-    click.confirm(
-        (
-            "Please use 'Release %s' as the message title, and the full "
-            "release notes in markdown format as the message body."
-        )
-        % version,
-        default=True,
-        abort=False,
-    )
+    fd, msg_file = tempfile.mkstemp(suffix='.md', text=True)
+    with os.fdopen(fd, 'w') as fh:
+        fh.write(message)
     try:
-        run(['git', 'tag', "-s", "v%s" % version], check=True)
-    except CalledProcessError as exc_info:
-        click.echo(
-            "Failed to create signed tag 'v%s': %s" % (version, str(exc_info))
-        )
-        click.echo(
-            "Please create signed tag manually (git tag -s v%s)" % version
-        )
-        click.confirm("Continue with pushing tag to origin?", default=True)
+        try:
+            run(['git', 'tag', '-s', '-F', msg_file, tag], check=True)
+        except CalledProcessError as exc_info:
+            click.echo(
+                "Failed to create signed tag '%s': %s" % (tag, str(exc_info))
+            )
+            click.echo(
+                "Please create the signed tag manually (git tag -s %s)" % tag
+            )
+            click.confirm("Continue with pushing tag to origin?", default=True)
+    finally:
+        os.remove(msg_file)
     try:
         run(['git', 'push', '--tags', 'origin'], check=True)
     except CalledProcessError as exc_info:
@@ -405,6 +572,61 @@ def make_and_push_tag(version):
             % str(exc_info),
             default=True,
         )
+    create_github_release(version, notes)
+
+
+def create_github_release(version, notes):
+    """Create a GitHub release for the tag, reusing the CHANGELOG notes.
+
+    Uses the `gh` CLI (which infers the repository from the git remote). If
+    `gh` is not installed, prints the URL for creating the release by hand.
+    """
+    tag = "v%s" % version
+    if shutil.which('gh') is None:
+        click.echo(
+            "The `gh` CLI is not available; create the GitHub release for %s "
+            "manually at %s" % (tag, github_release_url(tag))
+        )
+        return
+    if not click.confirm(
+        "Create the GitHub release for %s from the CHANGELOG notes?" % tag,
+        default=True,
+    ):
+        return
+    fd, notes_file = tempfile.mkstemp(suffix='.md', text=True)
+    with os.fdopen(fd, 'w') as fh:
+        fh.write(notes + "\n")
+    try:
+        run(
+            [
+                'gh',
+                'release',
+                'create',
+                tag,
+                '--verify-tag',
+                '--title',
+                tag,
+                '--notes-file',
+                notes_file,
+            ],
+            check=True,
+        )
+    except CalledProcessError as exc_info:
+        click.echo("Failed to create the GitHub release: %s" % str(exc_info))
+        click.echo("Create it manually at %s" % github_release_url(tag))
+        click.confirm("Continue?", default=True, abort=True)
+    finally:
+        os.remove(notes_file)
+
+
+def github_release_url(tag):
+    """Return the "new release" URL for `tag`, derived from CHANGELOG.md."""
+    try:
+        with open('CHANGELOG.md') as in_fh:
+            base = get_changelog_repo_base(in_fh.read())
+    except (OSError, ReleaseError):
+        return "the project's GitHub releases page"
+    return "%s/releases/new?tag=%s" % (base, tag)
 
 
 def make_next_dev_version_commit(version):
@@ -421,7 +643,7 @@ def make_next_dev_version_commit(version):
 ###############################################################################
 
 
-# run tests with `pytest -s scripts/release.py`
+# Run the tests below with `uv run pytest -s scripts/release.py`.
 
 
 def test_list_versions():
@@ -499,6 +721,117 @@ def test_propose_next_version():
     assert propose_next_version('0.1.0+dev') == '0.1.1'
     assert propose_next_version('0.1.0.post1') == '0.1.1'
     assert propose_next_version('0.1.0.post1+dev') == '0.1.1'
+
+
+def test_extract_release_notes(tmp_path):
+    changelog = tmp_path / "CHANGELOG.md"
+    changelog.write_text(
+        "# Changelog\n\n"
+        "## [Unreleased]\n\n"
+        "## [v0.2.0] - 2026-09-01\n\n"
+        "* Added: a feature [[#12]]\n"
+        "* Fixed: a crash [[#15]]\n\n"
+        "## [v0.1.0] - 2026-07-07\n\n"
+        "Initial release.\n\n"
+        "[Unreleased]: https://github.com/o/r/compare/v0.2.0..HEAD\n"
+        "[v0.2.0]: https://github.com/o/r/releases/tag/v0.2.0\n"
+        "[v0.1.0]: https://github.com/o/r/releases/tag/v0.1.0\n"
+    )
+    f = str(changelog)
+    # A middle version stops at the next '## ' heading.
+    assert extract_release_notes('0.2.0', filename=f) == (
+        "* Added: a feature [[#12]]\n* Fixed: a crash [[#15]]"
+    )
+    # The last version stops at the link-definition block.
+    assert extract_release_notes('0.1.0', filename=f) == "Initial release."
+    # A missing or empty section is an error.
+    with pytest.raises(ReleaseError):
+        extract_release_notes('9.9.9', filename=f)
+
+
+def test_get_changelog_repo_base():
+    text = (
+        "# Changelog\n\n"
+        "[Unreleased]: https://github.com/o/r/compare/v0.1.0..HEAD\n"
+        "[v0.1.0]: https://github.com/o/r/releases/tag/v0.1.0\n"
+    )
+    assert get_changelog_repo_base(text) == "https://github.com/o/r"
+    with pytest.raises(ReleaseError):
+        get_changelog_repo_base("# Changelog\n\nno links here\n")
+
+
+CHANGELOG_BEFORE_RELEASE = (
+    "# Changelog\n\n"
+    "## [Unreleased]\n\n"
+    "* Added: a feature [[#12]]\n\n"
+    "## [v0.1.0] - 2026-07-07\n\n"
+    "Initial release.\n\n"
+    "[Unreleased]: https://github.com/o/r/compare/v0.1.0..HEAD\n"
+    "[v0.1.0]: https://github.com/o/r/releases/tag/v0.1.0\n"
+)
+
+
+def test_prepare_changelog(tmp_path):
+    changelog = tmp_path / "CHANGELOG.md"
+    changelog.write_text(CHANGELOG_BEFORE_RELEASE)
+    f = str(changelog)
+    prepare_changelog('0.2.0', filename=f, today='2026-09-01')
+    text = changelog.read_text()
+    # The '[Unreleased]' heading becomes the release heading; no fresh
+    # '[Unreleased]' heading is added yet (that is a separate '+dev' step).
+    assert "## [v0.2.0] - 2026-09-01" in text
+    assert "## [Unreleased]" not in text
+    # The entry is carried over verbatim under the new heading.
+    assert "* Added: a feature [[#12]]" in text
+    # The version links are updated.
+    assert "[Unreleased]: https://github.com/o/r/compare/v0.2.0..HEAD" in text
+    assert "[v0.2.0]: https://github.com/o/r/releases/tag/v0.2.0" in text
+    assert "[v0.1.0]: https://github.com/o/r/releases/tag/v0.1.0" in text
+    # Re-running is a no-op (the '## [v0.2.0]' heading already exists).
+    prepare_changelog('0.2.0', filename=f, today='2099-01-01')
+    assert changelog.read_text() == text
+    # With no '[Unreleased]' heading left, releasing another version errors.
+    with pytest.raises(ReleaseError):
+        prepare_changelog('0.3.0', filename=f, today='2026-10-01')
+
+
+def test_add_unreleased_heading(tmp_path):
+    changelog = tmp_path / "CHANGELOG.md"
+    changelog.write_text(CHANGELOG_BEFORE_RELEASE)
+    f = str(changelog)
+    # A release followed by re-opening round-trips to a valid next-cycle file.
+    prepare_changelog('0.2.0', filename=f, today='2026-09-01')
+    add_unreleased_heading(filename=f)
+    text = changelog.read_text()
+    assert "## [Unreleased]\n\n## [v0.2.0] - 2026-09-01" in text
+    # Exactly one '## [Unreleased]' heading, above the latest release.
+    assert text.count("## [Unreleased]") == 1
+    # Idempotent: a heading already present is left untouched.
+    add_unreleased_heading(filename=f)
+    assert changelog.read_text() == text
+    # A file with no version heading cannot be re-opened.
+    empty = tmp_path / "EMPTY.md"
+    empty.write_text("# Changelog\n\nnothing here\n")
+    with pytest.raises(ReleaseError):
+        add_unreleased_heading(filename=str(empty))
+
+
+def test_set_version(tmp_path):
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text('[project]\nname = "x"\nversion = "0.1.0+dev"\n')
+    f = str(pyproject)
+    assert get_version(f) == '0.1.0+dev'
+    set_version(f, '0.2.0')
+    assert get_version(f) == '0.2.0'
+    # Other lines are untouched and the '.bak' file is cleaned up on success.
+    assert 'name = "x"' in pyproject.read_text()
+    assert not (tmp_path / "pyproject.toml.bak").exists()
+    # A file without a version line is a ReleaseError (original restored).
+    noversion = tmp_path / "noversion.toml"
+    noversion.write_text('[project]\nname = "x"\n')
+    with pytest.raises(ReleaseError):
+        set_version(str(noversion), '0.2.0')
+    assert noversion.read_text() == '[project]\nname = "x"\n'
 
 
 ###############################################################################

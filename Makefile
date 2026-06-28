@@ -17,9 +17,14 @@ help:  ## show this help
 	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
 
+# The test suite bakes the template (pytest-cookies) and checks the rendered
+# output with black and isort. The generated projects manage their own tooling
+# through uv, so only these few packages are needed here. black and isort are
+# pinned so that the formatting checks are reproducible and match the versions
+# used by the generated project's pre-commit hooks.
 .venv/bin/cookiecutter:
-	python -m venv .venv
-	.venv/bin/pip install pytest-cookies ipython pdbpp black isort pre-commit flake8 pylint pep8 twine click gitpython doctr tox zip-files
+	uv venv .venv
+	uv pip install --python .venv/bin/python pytest-cookies "black==24.10.0" "isort==5.13.2"
 
 
 clean:  ## remove testing artifacts
